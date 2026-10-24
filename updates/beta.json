@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "channel": "beta",
+  "platform": "windows-x86_64",
+  "version": "beta0.1.0",
+  "release_url": "https://github.com/DavidGump-070660/Dolikepet/releases/tag/beta0.1.0",
+  "download_url": "https://github.com/DavidGump-070660/Dolikepet/releases/download/beta0.1.0/Dolikepet-beta0.1.0-windows-x64.zip",
+  "size_bytes": 46689632,
+  "sha256": "ad7377bfe36d9947507f4351417adfbc507c7d1f64ee077bdf1b7cbc28fd0f2f"
+}
