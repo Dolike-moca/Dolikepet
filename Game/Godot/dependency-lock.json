@@ -1,0 +1,28 @@
+{
+  "godot": {
+    "version": "4.7.2-stable",
+    "source": "https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable",
+    "verification": "Official SHA512-SUMS.txt"
+  },
+  "gd_cubism": {
+    "version": "v0.9.1",
+    "commit": "60e9c61ed20d08ec19b2cb80fb492ce6344927c6",
+    "source": "https://github.com/MizunagiKB/gd_cubism",
+    "local_patch": "tools/patch-gdcubism.py"
+  },
+  "godot_cpp": {
+    "commit": "fbbf9ec4efd8f1055d00edb8d926eef8ba4c2cce",
+    "source": "https://github.com/godotengine/godot-cpp"
+  },
+  "cubism_native": {
+    "version": "5-r.5",
+    "core_and_framework": "Both from user-downloaded CubismSdkForNative-5-r.5.zip",
+    "source": "https://www.live2d.com/zh-CHS/sdk/download/native/"
+  },
+  "build": {
+    "compiler": "Visual Studio Build Tools 2022 / MSVC v143",
+    "scons": "4.7.0",
+    "architecture": "x86_64",
+    "renderer": "GDCubism 2D / Godot OpenGL Compatibility"
+  }
+}

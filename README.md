@@ -6,7 +6,9 @@
 
 当前版本：**0.2.0「纳垢的赐福」· Windows 64 位**
 
-[下载游玩版](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.2.0) · [查看版本记录](https://github.com/Dolike-moca/Dolikepet/releases) · [反馈问题与建议](https://github.com/Dolike-moca/Dolikepet/issues)
+[下载游玩版](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.2.0) · [源码与构建](docs/BUILD.md) · [查看版本记录](https://github.com/Dolike-moca/Dolikepet/releases) · [反馈问题与建议](https://github.com/Dolike-moca/Dolikepet/issues)
+
+**自有代码采用 MIT 开源，项目美术素材采用 CC BY 4.0 开放并保留署名。** 可以查看和修改桌宠交互、小游戏、文件投喂与桌面窗口的实现。第三方素材与组件保留原作者及原许可，详见文末说明。
 
 ## 和猫咪一起做什么
 
@@ -110,4 +112,18 @@
 
 反馈问题时，请尽量附上版本号、操作步骤，以及截图或短视频，方便复现和改进。
 
-本仓库存放游玩包、使用说明和更新信息。[更新接口说明](updates/README.md) 供维护时参考。第三方许可随游玩包放在 `licenses` 文件夹中；角色素材及第三方组件的授权范围以相应许可为准。
+## 源码与参与开发
+
+本仓库公开了 **0.2.0 的程序源码、当前运行素材、模型导出、构建工具和回归测试**。希望你能从中了解猫咪如何与桌面互动，也欢迎一起把它做得更有陪伴感。
+
+- [从源码构建](docs/BUILD.md)：Windows 环境、固定版本依赖、编译与测试步骤。
+- [参与贡献](CONTRIBUTING.md)：改动范围、素材规则和验证要求。
+- [Game 源码目录](Game)：Godot 逻辑、Windows 原生辅助程序与素材清单。
+- [0.2.0 源码快照](https://github.com/Dolike-moca/Dolikepet/tree/source-0.2.0)：固定在这次源码公开的版本，后续开发可继续在主分支进行。
+- [更新接口说明](updates/README.md)：当前游玩版的版本检查方式。
+
+源码运行需要 Godot 与自行取得的 Live2D Native SDK。**只想游玩，请下载 Releases 中的 Windows ZIP；GitHub 的 Source code 压缩包不是直接可运行的游玩包。** PSD、Cubism 编辑工程、开发缓存、历史备份和玩家文件不在公开仓库中。
+
+## 开源许可
+
+Dolikepet 的**自有程序代码、工具、测试与文档采用 [MIT License](LICENSE)**。项目有权授权的**美术素材采用 [CC BY 4.0](LICENSES/CC-BY-4.0.txt)**，注明 **© 2026 Dolike-moca**；复用时保留署名、项目与许可证链接，并标明修改。Coopanion 等第三方素材和 Live2D 等组件保留原作者及原许可。请同时阅读 [素材许可与署名说明](ASSET_LICENSES.md) 与 [第三方声明](THIRD_PARTY_NOTICES.md)。

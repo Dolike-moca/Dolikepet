@@ -1,0 +1,27 @@
+{
+  "source": "provenance:exec-4bad5ca9-9651-4e52-a087-64f304b95506.png",
+  "source_sha256": "cf2b23f7931d409ed9f1c170496e68b0652a9e1e9399fd3e50726cfefed94eda",
+  "extraction_box": [
+    208,
+    772,
+    312,
+    825
+  ],
+  "method": "local background unmatting from selected preview",
+  "size": [
+    93,
+    44
+  ],
+  "canvas": [
+    2048,
+    2048
+  ],
+  "center": [
+    745,
+    1055.5
+  ],
+  "visible_width": 74,
+  "orientation": "long curve left/far side, short corner crease right/near side",
+  "sprite_sha256": "dbbd3380b00bbdfa06b12dbafaa2c26778d30fa97f3d6b56eb2629a2034a9ff4",
+  "canonicalLibrary": "Game/assets/library/runtime/chewing/reference.json"
+}

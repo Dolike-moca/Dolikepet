@@ -1,0 +1,104 @@
+{
+  "source": "provenance:晕眩.psd",
+  "source_sha256": "5c9f9335803f60475db2d5358fbfd00f635cfd3a879e9c87017d5eba3588ca3e",
+  "canvas": [
+    2048,
+    2048
+  ],
+  "features": [
+    {
+      "layer": "dizzy_eyeL",
+      "file": "dizzy_eyeL_psd.png",
+      "bbox": [
+        790,
+        798,
+        1011,
+        1008
+      ],
+      "size": [
+        221,
+        210
+      ],
+      "center": [
+        900.5,
+        903.0
+      ],
+      "smart_object_transform_box": [
+        1013.9000000000003,
+        795.1999999999998,
+        787.7999999999997,
+        795.1999999999996,
+        787.7999999999997,
+        1009.3999999999999,
+        1013.9000000000003,
+        1009.4000000000001
+      ],
+      "embedded_png_identical": true,
+      "transform_already_baked": true,
+      "rgba_sha256": "9d62476b5d6c19bbf41d2d1730c711c9706953a914194a219eb42c3b1f89ba7d"
+    },
+    {
+      "layer": "dizzy_eyeR",
+      "file": "dizzy_eyeR_psd.png",
+      "bbox": [
+        530,
+        818,
+        685,
+        1024
+      ],
+      "size": [
+        155,
+        206
+      ],
+      "center": [
+        607.5,
+        921.0
+      ],
+      "smart_object_transform_box": [
+        687.6000000000001,
+        815.8999999999999,
+        527.7999999999997,
+        815.8999999999996,
+        527.7999999999997,
+        1026.6999999999996,
+        687.6000000000001,
+        1026.6999999999998
+      ],
+      "embedded_png_identical": true,
+      "transform_already_baked": true,
+      "rgba_sha256": "e9814faf437d290d8e9599aa831edb325c880ee2db3cab2de318580885303d45"
+    },
+    {
+      "layer": "dizzy_mouth",
+      "file": "dizzy_mouth_psd.png",
+      "bbox": [
+        686,
+        1037,
+        802,
+        1062
+      ],
+      "size": [
+        116,
+        25
+      ],
+      "center": [
+        744.0,
+        1049.5
+      ],
+      "smart_object_transform_box": [
+        804.2,
+        1034.0,
+        683.5,
+        1033.9999999999998,
+        683.5,
+        1064.5999999999997,
+        804.2,
+        1064.6
+      ],
+      "embedded_png_identical": true,
+      "transform_already_baked": true,
+      "rgba_sha256": "da23e705e7e80609aeb7c94ed6bf66601dc1435329fa54db351ae6277a926fda"
+    }
+  ],
+  "canonicalLibrary": "Game/assets/library/runtime/landing/psd-reference.json"
+}

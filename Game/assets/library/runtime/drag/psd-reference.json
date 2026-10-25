@@ -1,0 +1,108 @@
+{
+  "source": "provenance:拖拽调整.psd",
+  "source_sha256": "c9b45f09bf76381b09bf201f4d3ad3d9b50420776c588dc4ae1dfb29f869d7f1",
+  "canvas": [
+    2048,
+    2048
+  ],
+  "eye_creases_visible": true,
+  "features": [
+    {
+      "layer": "drag_eyeR",
+      "file": "drag_eye_far_psd.png",
+      "mesh": "ArtMesh8",
+      "bbox": [
+        519,
+        835,
+        651,
+        993
+      ],
+      "size": [
+        132,
+        158
+      ],
+      "center": [
+        585.0,
+        914.0
+      ],
+      "sha256": "818145c614f2d36789dc78845fec9a33236553eeb69543a55aad04e3d6ac536d",
+      "rgba_sha256": "0de9a9d4f9203f52ecbd0393e61a99c15a2a4b913fba44756842e2b458d220b4",
+      "smart_object_transform_box": [
+        653.5159478258483,
+        832.2153932300145,
+        517.5159478258477,
+        832.2153932300146,
+        517.5159478258478,
+        995.4153932300145,
+        653.5159478258485,
+        995.4153932300144
+      ],
+      "transform_already_baked": true
+    },
+    {
+      "layer": "drag_eyeL",
+      "file": "drag_eye_near_psd.png",
+      "mesh": "ArtMesh6",
+      "bbox": [
+        782,
+        808,
+        960,
+        974
+      ],
+      "size": [
+        178,
+        166
+      ],
+      "center": [
+        871.0,
+        891.0
+      ],
+      "sha256": "2d72e7424e3b3c9c93a03968068b34e473ba8b7e885d4aa163b8a916a5aa464b",
+      "rgba_sha256": "7412cc0581317b9197a98fce9ee643ce41bd86207a5682321f2eb12900eef023",
+      "smart_object_transform_box": [
+        962.8484778952507,
+        805.0525924860731,
+        779.2484778952482,
+        805.0525924860714,
+        779.2484778952482,
+        976.7525924860711,
+        962.8484778952507,
+        976.7525924860731
+      ],
+      "transform_already_baked": true
+    },
+    {
+      "layer": "drag_mouth",
+      "file": "drag_mouth_psd.png",
+      "mesh": "ArtMesh3",
+      "bbox": [
+        692,
+        1037,
+        783,
+        1064
+      ],
+      "size": [
+        91,
+        27
+      ],
+      "center": [
+        737.5,
+        1050.5
+      ],
+      "sha256": "0c153250a4216a2b3915996d426514affead51e2d16d12a25f6dd0c814e58d73",
+      "rgba_sha256": "09831b5a324d2dea33444c6a5be08cdbd1403ae47221a0d710b79aa16a054d29",
+      "smart_object_transform_box": [
+        785.9000000000001,
+        1034.0,
+        689.0,
+        1034.0,
+        689.0,
+        1066.3,
+        785.9000000000001,
+        1066.3
+      ],
+      "transform_already_baked": true
+    }
+  ],
+  "canonicalLibrary": "Game/assets/library/runtime/drag/psd-reference.json"
+}

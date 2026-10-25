@@ -1,0 +1,27 @@
+# Development dependencies and generated outputs
+/_tools/
+/_work/
+/_archive/
+/.venv/
+**/.godot/
+**/__pycache__/
+**/*.pyc
+/Game/Godot/assets/
+/Game/Godot/model/
+/Game/Godot/addons/gd_cubism/bin/
+/Game/Godot/native/*.exe
+/Game/Runtime/
+/Game/model/source/
+*.psd
+*.Psd
+*.cmo3
+*.log
+*.zip
+*.pck
+*.exe
+*.dll
+*.env
+.env*
+**/猫的饭盆/
+**/猫的胃袋/
+

@@ -1,0 +1,40 @@
+{
+  "source": "provenance:手臂调整.psd",
+  "source_sha256": "6736e57f37115838eaaf510e319907dd16289232092b33674b1c50ba3f66639d",
+  "original_layer_bbox": [
+    505,
+    1176,
+    792,
+    1548
+  ],
+  "reference_layer_bbox": [
+    537,
+    1180,
+    795,
+    1545
+  ],
+  "fit_parameters": {
+    "angle_degrees": -3.625,
+    "scale_x": 0.9546874999999999,
+    "scale_y": 0.9531250000000001,
+    "shear": 0.007812500000000002,
+    "shoulder_dx": 1.5,
+    "shoulder_dy": 4.875
+  },
+  "matrix": [
+    [
+      0.9527773955150897,
+      0.06805913583972939
+    ],
+    [
+      -0.06036105741065443,
+      0.9507240687023757
+    ]
+  ],
+  "translation": [
+    -45.49009642014255,
+    106.9733195798442
+  ],
+  "registration_mse": 6.632617950439453,
+  "canonicalLibrary": "Game/assets/library/runtime/far-arm-reference.json"
+}

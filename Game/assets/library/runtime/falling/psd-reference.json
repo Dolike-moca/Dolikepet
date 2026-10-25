@@ -1,0 +1,54 @@
+{
+  "source": "provenance:下落.psd",
+  "source_sha256": "f6e82871f1a67b98ff1feb9c8e74ccb7a118ebed4968aadce38572c1c0ee38bd",
+  "canvas": [
+    2048,
+    2048
+  ],
+  "unchanged_visible_face_layers": [
+    "face.png",
+    "eye_creases.png",
+    "eye_far_white.png",
+    "eye_near_white.png",
+    "eye_near_iris.png",
+    "eye_near_lash.png",
+    "eye_far_iris.png",
+    "eye_far_lash.png",
+    "brows.png"
+  ],
+  "features": [
+    {
+      "layer": "surprised_mouth",
+      "file": "surprised_mouth_psd.png",
+      "mesh": "ArtMesh3",
+      "bbox": [
+        710,
+        1009,
+        772,
+        1085
+      ],
+      "size": [
+        62,
+        76
+      ],
+      "center": [
+        741.0,
+        1047.0
+      ],
+      "sha256": "45dbf6ce975936e679ea491e175110d3221e76dd25d937996796fd57aea4ee9b",
+      "rgba_sha256": "d58944c9642bf937a528a59c03522d98d380d0aa59e5e10a97e91a8889465bfe",
+      "smart_object_transform_box": [
+        775.0,
+        1006.0,
+        707.0,
+        1006.0,
+        707.0,
+        1087.6,
+        775.0,
+        1087.6
+      ],
+      "transform_already_baked": true
+    }
+  ],
+  "canonicalLibrary": "Game/assets/library/runtime/falling/psd-reference.json"
+}

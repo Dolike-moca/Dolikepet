@@ -1,0 +1,38 @@
+{
+  "source": "provenance:skirt_sit.png",
+  "sha256": "8709D00FDCE1BCC8CAA557101A70F3ED1A1B2EB70C66CFB78FC68DA0DAFA5FF0",
+  "beforeHemEditSha256": "E3BD23E7B9D0BA165B02A4A0D1D564AECF4901FC2D0F7648FD264DA7A44FF2A2",
+  "beforeHemEdit": "provenance:skirt_sit_裙摆修改前.png",
+  "editRecord": "provenance:sitting-hem-edit-v2.json",
+  "sourcePsd": "provenance:常态PSD.psd",
+  "sourcePsdSha256": "B1961E1A7F6A3D21154C2C54282A26A6F2B0714127AD0ABFE551763C12CB5FEC",
+  "psdLayer": "skirt_sit",
+  "canvasSize": [
+    2048,
+    2048
+  ],
+  "bbox": [
+    326,
+    1429,
+    1266,
+    1878
+  ],
+  "textureSize": [
+    940,
+    449
+  ],
+  "replaces": [
+    "leg_far.png",
+    "leg_near.png",
+    "skirt.png"
+  ],
+  "runtimeMeshIds": [
+    "ArtMesh23",
+    "ArtMesh22",
+    "ArtMesh21"
+  ],
+  "renderBefore": "ArtMesh20 (waist_belt.png)",
+  "pixelChanges": "User-requested right hem simplification with built-in image_gen; normalized to original dimensions, alpha preserved. PSD remains a placement reference and has not been rewritten.",
+  "date": "2026-10-20",
+  "canonicalLibrary": "Game/assets/library/runtime/sitting-source.json"
+}

@@ -1,0 +1,996 @@
+{
+  "schemaVersion": 2,
+  "approval": "2026-10-24 formal PCK visual baseline; current accepted assets, not file timestamps",
+  "canvas": [
+    2048,
+    2048
+  ],
+  "order": "back-to-front",
+  "files": [
+    {
+      "source": "assets/library/runtime/arms/arm_far_rest.png",
+      "sha256": "6b7de60248d15abbcb8dae7b47349229c7d98bd14055e2cf170c098067a5b14b",
+      "copies": [
+        "Godot/assets/arms/arm_far_rest.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/arms/rest-reference.json",
+      "sha256": "99168d19395848aa44f07b2758b30fcb3c71d8e8590fc30f0430fc9efac5a785",
+      "copies": [
+        "Godot/assets/arms/rest-reference.json"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/biting/cat_bite.png",
+      "sha256": "f7ce23f3ea347a61724d190b43d699c485cfadbfa3105f7316087f160d7a1769",
+      "copies": [
+        "Godot/assets/biting/cat_bite.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/bowl/cauldron.png",
+      "sha256": "558d8fe2847463f9d2c25efdabfa8cfc7091b67c0003889430bc50cbd2ed1cd4",
+      "copies": [
+        "Godot/assets/bowl/cauldron.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/bowl/shout_mouth.png",
+      "sha256": "839fc6ad7d43533e5b4a7a25d1d8863a3e296eb51c2ee208790b4beb76919da5",
+      "copies": [
+        "Godot/assets/bowl/shout_mouth.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/chewing/chewing_mouth.png",
+      "sha256": "dbbd3380b00bbdfa06b12dbafaa2c26778d30fa97f3d6b56eb2629a2034a9ff4",
+      "copies": [
+        "Godot/assets/chewing/chewing_mouth.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/chewing/reference.json",
+      "sha256": "25beeb602d07c705323f8842c81a6f9a7e39243447f9d3d0943be5e7f016b652",
+      "copies": [
+        "Godot/assets/chewing/reference.json"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/chewing/swallow-reference.json",
+      "sha256": "223b73de5eb085884b26d017c97e08da556848050f5b7af7eeaea35489475896",
+      "copies": [
+        "Godot/assets/chewing/swallow-reference.json"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/chewing/swallow_mouth.png",
+      "sha256": "68fc6f8ead67cb355219ed5858984af6dc72cd35e9e5f68ef51d63b3ff7c89c5",
+      "copies": [
+        "Godot/assets/chewing/swallow_mouth.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/drag/drag_eye_far_psd.png",
+      "sha256": "818145c614f2d36789dc78845fec9a33236553eeb69543a55aad04e3d6ac536d",
+      "copies": [
+        "Godot/assets/drag/drag_eye_far_psd.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/drag/drag_eye_near_psd.png",
+      "sha256": "2d72e7424e3b3c9c93a03968068b34e473ba8b7e885d4aa163b8a916a5aa464b",
+      "copies": [
+        "Godot/assets/drag/drag_eye_near_psd.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/drag/drag_mouth_psd.png",
+      "sha256": "0c153250a4216a2b3915996d426514affead51e2d16d12a25f6dd0c814e58d73",
+      "copies": [
+        "Godot/assets/drag/drag_mouth_psd.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/drag/psd-reference.json",
+      "sha256": "ae5f1f5823a794081135d3790b0e87bb9f090721b9340b9ebdaf49f479b16122",
+      "copies": [
+        "Godot/assets/drag/psd-reference.json"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/falling/psd-reference.json",
+      "sha256": "dee6d57116fc2881d9ff304cc88ab25438cbcc41180ac8c80b27d292c41723b8",
+      "copies": [
+        "Godot/assets/falling/psd-reference.json"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/falling/surprised_mouth_psd.png",
+      "sha256": "45dbf6ce975936e679ea491e175110d3221e76dd25d937996796fd57aea4ee9b",
+      "copies": [
+        "Godot/assets/falling/surprised_mouth_psd.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/far-arm-reference.json",
+      "sha256": "c8da08bbbdbfd7e487b48bda74a330fe3f0e1d9df3082faa431921950df63585",
+      "copies": [
+        "Godot/assets/far-arm-reference.json"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/feeding/arm_far_palm.png",
+      "sha256": "3f661928e31b9b9b3ed68fc5b94a7688014e4d04445f6c1789fcc7bd5d6e399a",
+      "copies": [
+        "Godot/assets/feeding/arm_far_palm.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/feeding/arm_near_hold.png",
+      "sha256": "8085232beaaf69c108d9b5f5a588caf5c5689ab8c3f09f2661cb9815844b94da",
+      "copies": [
+        "Godot/assets/feeding/arm_near_hold.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/feeding/bowl.png",
+      "sha256": "56f304a8b8b69d0c15d83828a0d1614954acf28e35b6fe1c91fd1fdd7ff912e3",
+      "copies": [
+        "Godot/assets/feeding/bowl.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/feeding/burger.png",
+      "sha256": "3ab39029a6f214df55093ae22a5c71500e733ad9617c969651d685aa90ce324f",
+      "copies": [
+        "Godot/assets/feeding/burger.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/feeding/icon_music.svg",
+      "sha256": "20e255720564bc029dc713da5433db3ab51094dd57ccceb12e27d76fd7391b8d",
+      "copies": [
+        "Godot/assets/feeding/icon_music.svg"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/feeding/icon_notes.svg",
+      "sha256": "3aef616ae6aa2ba1c17083dc358131033b279ed67a914e992df3fc5d9b6e5213",
+      "copies": [
+        "Godot/assets/feeding/icon_notes.svg"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/feeding/icon_photos.svg",
+      "sha256": "cf45e29b61638f93d4bbd81a99b0af4380278b52dd72f82c4e7362512a3bc8ea",
+      "copies": [
+        "Godot/assets/feeding/icon_photos.svg"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/hungry/far_eye_base.png",
+      "sha256": "fcbf123aff807d9b75551fecda1c5766abf8077d5b4e9d8afe234bd4b0af5d55",
+      "copies": [
+        "Godot/assets/hungry/far_eye_base.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/hungry/far_eye_star.png",
+      "sha256": "093c52655504b2be95bd45e24bbcf648f453c4c727ca7053879c60cc1dba556d",
+      "copies": [
+        "Godot/assets/hungry/far_eye_star.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/hungry/mouth.png",
+      "sha256": "c752fe90175596e061986977ff95fbd6b5d46c4360c7ca8b433ba2938e844022",
+      "copies": [
+        "Godot/assets/hungry/mouth.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/hungry/near_eye_base.png",
+      "sha256": "15d52e43b574bf1ec004dbfb90737a1f7fa83a960f054a231867ca77a61c9498",
+      "copies": [
+        "Godot/assets/hungry/near_eye_base.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/hungry/near_eye_star.png",
+      "sha256": "299bcbaab20d84bde33d3a7a3184584cb800a6b630c9c045de5f5720c4d55250",
+      "copies": [
+        "Godot/assets/hungry/near_eye_star.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/landing/dizzy_eyeL_psd.png",
+      "sha256": "f8243d83eb871ac7efa0ab43fc04391d788e1f9bb5e71d7ffe7bcf4e34626af0",
+      "copies": [
+        "Godot/assets/landing/dizzy_eyeL_psd.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/landing/dizzy_eyeR_psd.png",
+      "sha256": "c624c95d3929d021288031b88f8d3cc8542f7ce96fb5cad69519efa8afa372c8",
+      "copies": [
+        "Godot/assets/landing/dizzy_eyeR_psd.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/landing/dizzy_mouth_psd.png",
+      "sha256": "83e1e20312121126ca3bf041f21e69047a284089651dbce6994d775bf4140b57",
+      "copies": [
+        "Godot/assets/landing/dizzy_mouth_psd.png"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/landing/psd-reference.json",
+      "sha256": "a078ee284561ba237ac761b6e502a1268232145a6d646eae1dc52917a72f3078",
+      "copies": [
+        "Godot/assets/landing/psd-reference.json"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/sitting-boot-contours.json",
+      "sha256": "901e20eae92f94e96ba25feb2fc5b4292ca3a85d84a6d0e1ae09c11f9418a75d",
+      "copies": [
+        "Godot/assets/sitting-boot-contours.json"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/sitting-source.json",
+      "sha256": "14d61b422d2d3ed0367636607076df6bc757cb962093dd13db3dac8441c98ce0",
+      "copies": [
+        "Godot/assets/sitting-source.json"
+      ]
+    },
+    {
+      "source": "assets/library/runtime/skirt_sit.png",
+      "sha256": "8709d00fdce1bcc8caa557101a70f3ed1a1b2eb70c66cfb78fc68da0dafa5ff0",
+      "copies": [
+        "Godot/assets/skirt_sit.png"
+      ]
+    },
+    {
+      "source": "assets/library/base/tail.png",
+      "sha256": "15bfaf5349f3accdc47dcb6f2bc39d5c0165341f73785f8071febab73ba2cee3",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/hair_far.png",
+      "sha256": "d2eaa1e846885bbea50df655a56b89c6f0617c7df1bae0b22ddbe04737196d13",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/braid_far.png",
+      "sha256": "6556fa6d87696752f9c08c8bb75da6a4ea483d7a26d434496861fe1f47cbf686",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/torso_up.png",
+      "sha256": "069a51b6fd45f13a3f3e729e5f55509adabb6a61580907d5c8ed88fd1c7b81f0",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/leg_far.png",
+      "sha256": "804a5dbedea12b003cd9488f434d8ce06178c510e9af86e45d795a1e244466c7",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/leg_near.png",
+      "sha256": "b14a405457ba0da9f19716244ce00dc5f0d42ce2af4d0420c90de2775da918e7",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/skirt.png",
+      "sha256": "e7cd53492d12364c4f8c53f09e0c32f7b30c002836e00082c486b139b4e57d0d",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/waist_belt.png",
+      "sha256": "5adc5330f978eb14fb70b736088005681ecfa05a11b49eee60a8f35526a59574",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/face.png",
+      "sha256": "a15ce3a7d02a43aca08750ce73ef10de071ca126951f5488ec51843b2359b7e7",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/braid_near.png",
+      "sha256": "ffe92db2ed6e937dc74a765b24573865e0d45734088f5598a60166d322221d81",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/ear_far.png",
+      "sha256": "1cfc4669a29a564dd8f4d673eb1256270af8ffd0f88dab66df062bb0b7aacf70",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/ear_near.png",
+      "sha256": "f8b6bdf0eb8e6c52f24ad9551356b33e03526a42470dac2c097a03adc6f58bdc",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/eye_creases.png",
+      "sha256": "64e0e17f22cc86cc52239e546140ff5c1d3894217fa1b288b7b8370eeb31100c",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/eye_far_white.png",
+      "sha256": "13a50d5b030a533242cb3e449dad2f3682d37aaaf824634cbc74edc266f4d8a5",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/eye_near_white.png",
+      "sha256": "852b73ae7fc1e51bdae0cee5ec09a6b04728364e8bbf59f73cfa0254303ff2e3",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/eye_near_iris.png",
+      "sha256": "591d67d1c6f3673896ea8bc65e9b4dbc8ebf026c384a3857e0096c9fe5971942",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/eye_far_iris.png",
+      "sha256": "aa6ac0ae7e659fd80184dfab606837d91601c85614942b74d9c3a04ff7a8c84c",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/eye_far_lash.png",
+      "sha256": "a02451c87f23358247d39efbb543e95e89c4e0716124eee7c10cc44f2e9c22f8",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/sleep_eye_far.png",
+      "sha256": "91b59f4790aa5e40958e0d55aa966ebc7785ad304393ed71d6b9d23f2e5f1181",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/eye_near_lash.png",
+      "sha256": "58ccbcd01e683d138ef553c32404f624c682a260f8c735fd4e7fa1a66b0de35a",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/sleep_eye_near.png",
+      "sha256": "ec98e07e70eba1f876e03deeca54803dd5d38619c12cae4e3ac12206dd9dbf8a",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/scarf.png",
+      "sha256": "fe6d9a7c0f2ea137b53dce365da09a813abc1847f4597ced48936ae2eeef05dd",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/neutral_mouth.png",
+      "sha256": "b0ac435938197ddcba824d9719f66a9ea4bb516dca8adfa5b7ba4cdec366b57c",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/happy_mouth.png",
+      "sha256": "c7b0645860ce8f06286626b320c8a6e38a0ad97e45c66276d657c444fd3f41c0",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/sidelocks.png",
+      "sha256": "836c4498579c98ce3b4b1e7613f124d84ca521edd61fff2c021b295c5aa07420",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/hair_near.png",
+      "sha256": "dd88ad56d4bb6cbb0454f05f5d39676b9e20a6c52d7390d3a2692d79f7a7fb8b",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/brows.png",
+      "sha256": "06b05809b6f4b58b806f72c7ffbbb691b5e0404b38b29f599e04e17e6d928164",
+      "copies": []
+    },
+    {
+      "source": "assets/library/base/ahoge.png",
+      "sha256": "a8052ccbbed68f59139328567ac35fb6e4f0623a8e35af9ccbbda25be150afb7",
+      "copies": []
+    },
+    {
+      "source": "model/runtime/pet.2048/texture_00.png",
+      "sha256": "aed3a2f0afddc58477f0507e97f0b7024f8f43040409883e38f97c6a5429f84a",
+      "copies": [
+        "Godot/model/runtime/pet.2048/texture_00.png"
+      ]
+    },
+    {
+      "source": "model/runtime/pet.cdi3.json",
+      "sha256": "8869283efc9f60d57a1e2faccf8c8a8fb91db5ef1981e0bf80410d09f5298c64",
+      "copies": [
+        "Godot/model/runtime/pet.cdi3.json"
+      ]
+    },
+    {
+      "source": "model/runtime/pet.moc3",
+      "sha256": "0e852df54ced7833b3afe8dc64e6302c88ff13906b8644103278a58d9e784155",
+      "copies": [
+        "Godot/model/runtime/pet.moc3"
+      ]
+    },
+    {
+      "source": "model/runtime/pet.model3.json",
+      "sha256": "a2cb3c773ecc1c2d1568dc96a30e3c67374b9b9fcf42f44a49a97c6b2b76635d",
+      "copies": [
+        "Godot/model/runtime/pet.model3.json"
+      ]
+    },
+    {
+      "source": "assets/library/app/icon.png",
+      "sha256": "661f4818aa05c4040513f25add5a729ec300e3a7dc93f09c964a5d442ecc9cf7",
+      "copies": [
+        "Godot/assets/app/icon.png"
+      ]
+    },
+    {
+      "source": "assets/library/app/icon.ico",
+      "sha256": "3173a371dec1ad2ee4aa6d97ac28de536dd4e92f21615d816f134f75bc7506f6",
+      "copies": [
+        "Godot/assets/app/icon.ico"
+      ]
+    }
+  ],
+  "baseLayers": [
+    {
+      "name": "tail.png",
+      "visible": true,
+      "source": "assets/library/base/tail.png",
+      "position": [
+        872,
+        1320
+      ]
+    },
+    {
+      "name": "hair_far.png",
+      "visible": true,
+      "source": "assets/library/base/hair_far.png",
+      "position": [
+        269,
+        278
+      ]
+    },
+    {
+      "name": "arm_far.png",
+      "visible": true,
+      "source": "assets/library/runtime/arms/arm_far_rest.png",
+      "affine": [
+        0.990268051624298,
+        -0.139173254370689,
+        0.139173254370689,
+        0.990268051624298,
+        505.143920898437,
+        1206.058502197266
+      ]
+    },
+    {
+      "name": "braid_far.png",
+      "visible": true,
+      "source": "assets/library/base/braid_far.png",
+      "position": [
+        557,
+        1012
+      ]
+    },
+    {
+      "name": "torso_up.png",
+      "visible": true,
+      "source": "assets/library/base/torso_up.png",
+      "position": [
+        714,
+        1089
+      ]
+    },
+    {
+      "name": "leg_far.png",
+      "visible": true,
+      "source": "assets/library/base/leg_far.png",
+      "position": [
+        633,
+        1524
+      ]
+    },
+    {
+      "name": "leg_near.png",
+      "visible": true,
+      "source": "assets/library/base/leg_near.png",
+      "position": [
+        908,
+        1519
+      ]
+    },
+    {
+      "name": "skirt.png",
+      "visible": true,
+      "source": "assets/library/base/skirt.png",
+      "position": [
+        575,
+        1454
+      ]
+    },
+    {
+      "name": "waist_belt.png",
+      "visible": true,
+      "source": "assets/library/base/waist_belt.png",
+      "position": [
+        714,
+        1415
+      ]
+    },
+    {
+      "name": "arm_near.png",
+      "visible": true,
+      "source": "assets/library/runtime/feeding/arm_near_hold.png",
+      "affine": [
+        0.269477754831314,
+        0.0356581136584282,
+        -0.0356581136584282,
+        0.269477754831314,
+        962.8175277709961,
+        1164.679595947266
+      ]
+    },
+    {
+      "name": "face.png",
+      "visible": true,
+      "source": "assets/library/base/face.png",
+      "position": [
+        534,
+        554
+      ]
+    },
+    {
+      "name": "braid_near.png",
+      "visible": true,
+      "source": "assets/library/base/braid_near.png",
+      "position": [
+        993,
+        939
+      ]
+    },
+    {
+      "name": "ear_far.png",
+      "visible": true,
+      "source": "assets/library/base/ear_far.png",
+      "position": [
+        498,
+        217
+      ]
+    },
+    {
+      "name": "ear_near.png",
+      "visible": true,
+      "source": "assets/library/base/ear_near.png",
+      "position": [
+        1053,
+        260
+      ]
+    },
+    {
+      "name": "eye_creases.png",
+      "visible": true,
+      "source": "assets/library/base/eye_creases.png",
+      "position": [
+        570,
+        776
+      ]
+    },
+    {
+      "name": "eye_far_white.png",
+      "visible": true,
+      "source": "assets/library/base/eye_far_white.png",
+      "position": [
+        545,
+        851
+      ]
+    },
+    {
+      "name": "eye_near_white.png",
+      "visible": true,
+      "source": "assets/library/base/eye_near_white.png",
+      "position": [
+        807,
+        813
+      ]
+    },
+    {
+      "name": "eye_near_iris.png",
+      "visible": true,
+      "source": "assets/library/base/eye_near_iris.png",
+      "position": [
+        809,
+        826
+      ]
+    },
+    {
+      "name": "eye_far_iris.png",
+      "visible": true,
+      "source": "assets/library/base/eye_far_iris.png",
+      "position": [
+        561,
+        864
+      ]
+    },
+    {
+      "name": "eye_far_lash.png",
+      "visible": true,
+      "source": "assets/library/base/eye_far_lash.png",
+      "position": [
+        514,
+        835
+      ]
+    },
+    {
+      "name": "sleep_eye_far.png",
+      "visible": false,
+      "source": "assets/library/base/sleep_eye_far.png",
+      "position": [
+        509,
+        904
+      ]
+    },
+    {
+      "name": "eye_near_lash.png",
+      "visible": true,
+      "source": "assets/library/base/eye_near_lash.png",
+      "position": [
+        805,
+        800
+      ]
+    },
+    {
+      "name": "sleep_eye_near.png",
+      "visible": false,
+      "source": "assets/library/base/sleep_eye_near.png",
+      "position": [
+        817,
+        870
+      ]
+    },
+    {
+      "name": "scarf.png",
+      "visible": true,
+      "source": "assets/library/base/scarf.png",
+      "position": [
+        714,
+        1102
+      ]
+    },
+    {
+      "name": "neutral_mouth.png",
+      "visible": true,
+      "source": "assets/library/base/neutral_mouth.png",
+      "position": [
+        725,
+        1042
+      ]
+    },
+    {
+      "name": "happy_mouth.png",
+      "visible": false,
+      "source": "assets/library/base/happy_mouth.png",
+      "position": [
+        697,
+        1020
+      ]
+    },
+    {
+      "name": "sidelocks.png",
+      "visible": true,
+      "source": "assets/library/base/sidelocks.png",
+      "position": [
+        377,
+        657
+      ]
+    },
+    {
+      "name": "hair_near.png",
+      "visible": true,
+      "source": "assets/library/base/hair_near.png",
+      "position": [
+        299,
+        260
+      ]
+    },
+    {
+      "name": "brows.png",
+      "visible": true,
+      "source": "assets/library/base/brows.png",
+      "position": [
+        480,
+        704
+      ]
+    },
+    {
+      "name": "ahoge.png",
+      "visible": true,
+      "source": "assets/library/base/ahoge.png",
+      "position": [
+        715,
+        78
+      ]
+    }
+  ],
+  "variantGroups": [
+    {
+      "name": "02_坐姿",
+      "layers": [
+        {
+          "name": "skirt_sit",
+          "source": "assets/library/runtime/skirt_sit.png",
+          "position": [
+            326,
+            1429
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03_拖拽",
+      "layers": [
+        {
+          "name": "drag_eye_far_psd",
+          "source": "assets/library/runtime/drag/drag_eye_far_psd.png",
+          "position": [
+            519,
+            835
+          ]
+        },
+        {
+          "name": "drag_eye_near_psd",
+          "source": "assets/library/runtime/drag/drag_eye_near_psd.png",
+          "position": [
+            782,
+            808
+          ]
+        },
+        {
+          "name": "drag_mouth_psd",
+          "source": "assets/library/runtime/drag/drag_mouth_psd.png",
+          "position": [
+            692,
+            1037
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04_下落",
+      "layers": [
+        {
+          "name": "surprised_mouth_psd",
+          "source": "assets/library/runtime/falling/surprised_mouth_psd.png",
+          "position": [
+            710,
+            1009
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05_眩晕",
+      "layers": [
+        {
+          "name": "dizzy_eyeL_psd",
+          "source": "assets/library/runtime/landing/dizzy_eyeL_psd.png",
+          "position": [
+            790,
+            798
+          ]
+        },
+        {
+          "name": "dizzy_eyeR_psd",
+          "source": "assets/library/runtime/landing/dizzy_eyeR_psd.png",
+          "position": [
+            530,
+            818
+          ]
+        },
+        {
+          "name": "dizzy_mouth_psd",
+          "source": "assets/library/runtime/landing/dizzy_mouth_psd.png",
+          "position": [
+            686,
+            1037
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06_星星眼",
+      "layers": [
+        {
+          "name": "far_eye_base",
+          "source": "assets/library/runtime/hungry/far_eye_base.png",
+          "position": [
+            561,
+            864
+          ],
+          "size": [
+            90,
+            165
+          ]
+        },
+        {
+          "name": "far_eye_star",
+          "source": "assets/library/runtime/hungry/far_eye_star.png",
+          "position": [
+            561,
+            864
+          ],
+          "size": [
+            90,
+            165
+          ]
+        },
+        {
+          "name": "near_eye_base",
+          "source": "assets/library/runtime/hungry/near_eye_base.png",
+          "position": [
+            809,
+            826
+          ],
+          "size": [
+            143,
+            191
+          ]
+        },
+        {
+          "name": "near_eye_star",
+          "source": "assets/library/runtime/hungry/near_eye_star.png",
+          "position": [
+            809,
+            826
+          ],
+          "size": [
+            143,
+            191
+          ]
+        },
+        {
+          "name": "mouth",
+          "source": "assets/library/runtime/hungry/mouth.png",
+          "crop": [
+            510,
+            365,
+            1270,
+            635
+          ],
+          "affine": [
+            0.1112618724559023,
+            0,
+            0,
+            0.1112618724559023,
+            703.1099050203528,
+            1047.3222523744912
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07_进食双手",
+      "layers": [
+        {
+          "name": "arm_far_palm",
+          "source": "assets/library/runtime/feeding/arm_far_palm.png",
+          "affine": [
+            0.26322929730288647,
+            0.15249731297336183,
+            -0.15249731297336183,
+            0.26322929730288647,
+            516.409106508589,
+            1025.7444354282638
+          ]
+        },
+        {
+          "name": "arm_near_hold",
+          "source": "assets/library/runtime/feeding/arm_near_hold.png",
+          "affine": [
+            0.121633,
+            0.243095,
+            -0.243095,
+            0.121633,
+            1043.94774,
+            1158.377
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08_进食嘴型",
+      "layers": [
+        {
+          "name": "chewing_mouth",
+          "source": "assets/library/runtime/chewing/chewing_mouth.png",
+          "affine": [
+            0.8505747126436781,
+            0,
+            0,
+            0.8505747126436781,
+            705.448275862069,
+            1036.787356321839
+          ]
+        },
+        {
+          "name": "swallow_mouth",
+          "source": "assets/library/runtime/chewing/swallow_mouth.png",
+          "affine": [
+            -2.1818181818181817,
+            0,
+            0,
+            2.1818181818181817,
+            771.1818181818181,
+            1040.2272727272727
+          ]
+        },
+        {
+          "name": "cat_bite",
+          "source": "assets/library/runtime/biting/cat_bite.png",
+          "position": [
+            687,
+            1000
+          ],
+          "size": [
+            116,
+            116
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09_举锅大喊",
+      "layers": [
+        {
+          "name": "shout_mouth",
+          "source": "assets/library/runtime/bowl/shout_mouth.png",
+          "position": [
+            710,
+            1009
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10_饭盆与食物",
+      "layers": [
+        {
+          "name": "cauldron",
+          "source": "assets/library/runtime/bowl/cauldron.png",
+          "position": [
+            300,
+            900
+          ],
+          "size": [
+            650,
+            600
+          ]
+        },
+        {
+          "name": "burger",
+          "source": "assets/library/runtime/feeding/burger.png",
+          "position": [
+            540,
+            1100
+          ]
+        },
+        {
+          "name": "bowl",
+          "source": "assets/library/runtime/feeding/bowl.png",
+          "position": [
+            300,
+            900
+          ],
+          "size": [
+            650,
+            600
+          ]
+        }
+      ]
+    }
+  ],
+  "cubismContract": "Existing 30 ArtMesh IDs and vertices retained; all-arm overlays and alternate expressions are rendered by Godot."
+}

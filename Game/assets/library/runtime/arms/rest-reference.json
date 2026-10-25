@@ -1,0 +1,41 @@
+{
+  "source": "provenance:远手高低.psd",
+  "sourceSha256": "cae1feb3cc516981d59d7d50d1fe7b451c77a812b88af6e6326946a7fc18cb64",
+  "layer": "arm_far.png",
+  "canvasSize": [
+    2048,
+    2048
+  ],
+  "layerBounds": [
+    505,
+    1176,
+    792,
+    1548
+  ],
+  "pngMatchesPsdPixels": true,
+  "asset": "arm_far_rest.png",
+  "assetSha256": "6b7de60248d15abbcb8dae7b47349229c7d98bd14055e2cf170c098067a5b14b",
+  "shoulderInSource": [
+    215,
+    14
+  ],
+  "palmInSource": [
+    80,
+    289
+  ],
+  "usage": "All normal far-arm poses add their motion to the approved -8 degree rest rotation about the PSD shoulder. Feeding reach/release blend from/to this baseline; the fully held palm pose stays unchanged.",
+  "approvedRestPreview": "provenance:rest-far-arm-lower-8deg-preview.png",
+  "restRotationDegrees": -8.0,
+  "restShoulderInModel": [
+    -304.0,
+    166.0
+  ],
+  "restPalmInModel": [
+    -399.41357421875,
+    457.112060546875
+  ],
+  "approvedFeedingPreview": "provenance:far-arm-longer-review.png",
+  "feedingArtScaleFromOriginalHold": 1.19298833568046,
+  "feedingShoulderToPalmLength": 306.349487304688,
+  "canonicalLibrary": "Game/assets/library/runtime/arms/rest-reference.json"
+}

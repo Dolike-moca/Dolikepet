@@ -1,0 +1,22 @@
+{
+  "source": "provenance:sleep_mouth.png",
+  "source_sha256": "68fc6f8ead67cb355219ed5858984af6dc72cd35e9e5f68ef51d63b3ff7c89c5",
+  "method": "Byte-identical copy; Sprite2D.flip_h = true before whole-pet mirroring",
+  "size": [
+    24,
+    14
+  ],
+  "visible_bounds": [
+    1,
+    1,
+    23,
+    13
+  ],
+  "center": [
+    745,
+    1055.5
+  ],
+  "visible_width": 48,
+  "horizontal_flip_baked": false,
+  "canonicalLibrary": "Game/assets/library/runtime/chewing/swallow-reference.json"
+}
