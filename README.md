@@ -4,9 +4,9 @@
 
 希望你在工作、学习或休息时，桌面上能有一只会走动、会撒娇、也会回应你的小猫。Dolikepet 把日常陪伴、互动小游戏和文件投喂放在一起，让整理不再需要的文件，也成为照顾猫咪的一部分。
 
-当前版本：**0.2.0「纳垢的赐福」· Windows 64 位**
+当前版本：**0.2.1「纳垢的赐福」· Windows 64 位**
 
-[下载游玩版](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.2.0) · [源码与构建](docs/BUILD.md) · [查看版本记录](https://github.com/Dolike-moca/Dolikepet/releases) · [反馈问题与建议](https://github.com/Dolike-moca/Dolikepet/issues)
+[下载游玩版](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.2.1) · [源码与构建](docs/BUILD.md) · [查看版本记录](https://github.com/Dolike-moca/Dolikepet/releases) · [反馈问题与建议](https://github.com/Dolike-moca/Dolikepet/issues)
 
 **自有代码采用 MIT 开源，项目美术素材采用 CC BY 4.0 开放并保留署名。** 可以查看和修改桌宠交互、小游戏、文件投喂与桌面窗口的实现。第三方素材与组件保留原作者及原许可，详见文末说明。
 
@@ -25,7 +25,7 @@
 
 ## 开始陪伴
 
-1. 在 [0.2.0 发布页](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.2.0) 的 **Assets** 中下载 `Dolikepet-0.2.0-windows-x64.zip`。
+1. 在 [0.2.1 发布页](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.2.1) 的 **Assets** 中下载 `Dolikepet-0.2.1-windows-x64.zip`。
 2. 完整解压，打开 `Dolikepet` 文件夹，双击 **`DolikePet.exe`**。
 3. 右键猫咪，或右键系统托盘里的猫咪图标，打开设置和饭盆。
 
@@ -100,9 +100,13 @@
 
 ## 获取更新
 
-**右键猫咪 → 桌宠设置 → 版本与更新 → 检查更新**
+从 **0.2.1** 起，启动约 5 秒后会自动检查更新，之后每 6 小时再次检查。发现新版本时，猫咪先用文字气泡提醒，再在有网络时后台下载。离线或下载失败会自动重试，日常互动和设置草稿照常保留。
 
-发现新版本后，点击“查看并下载新版本”前往 GitHub。更新前先退出桌宠，再替换程序文件；**保留原目录里的“猫的饭盆”“猫的胃袋”及其中数据**。
+下载完会核对文件大小和 SHA-256；只有校验通过，猫咪才会提示“新版本下载完成啦”。同一版本已显示过的提示不会每次启动都重复，已下载的包也会先校验并复用。
+
+**右键猫咪 → 桌宠设置 → 版本与更新** 可查看下载进度、手动检查或重试，并在完成后“打开下载文件夹”。缓存位于 `%APPDATA%\Godot\app_userdata\Dolike 桌宠\updates`，与饭盆、胃袋分开存放。
+
+程序只自动下载，不自动安装。更新前先退出桌宠，再解压更新包、替换程序文件；**保留原目录里的“猫的饭盆”“猫的胃袋”及其中数据**。
 
 个人设置、最高成绩和新版本游戏记录保存在 `%APPDATA%\Godot\app_userdata\Dolike 桌宠`。同一 Windows 账号下的不同游玩目录共用这些设置，各自目录中的食物分别保存。
 
@@ -114,7 +118,7 @@
 
 ## 源码与参与开发
 
-本仓库公开了 **0.2.0 的程序源码、当前运行素材、模型导出、构建工具和回归测试**。希望你能从中了解猫咪如何与桌面互动，也欢迎一起把它做得更有陪伴感。
+本仓库公开了 **0.2.1 的程序源码、当前运行素材、模型导出、构建工具和回归测试**。希望你能从中了解猫咪如何与桌面互动，也欢迎一起把它做得更有陪伴感。
 
 - [从源码构建](docs/BUILD.md)：Windows 环境、固定版本依赖、编译与测试步骤。
 - [参与贡献](CONTRIBUTING.md)：改动范围、素材规则和验证要求。

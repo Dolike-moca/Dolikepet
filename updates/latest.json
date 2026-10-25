@@ -2,10 +2,10 @@
   "schema": 1,
   "channel": "stable",
   "platform": "windows-x86_64",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "release_name": "纳垢的赐福",
-  "release_url": "https://github.com/Dolike-moca/Dolikepet/releases/tag/0.2.0",
-  "download_url": "https://github.com/Dolike-moca/Dolikepet/releases/download/0.2.0/Dolikepet-0.2.0-windows-x64.zip",
-  "size_bytes": 46748038,
-  "sha256": "dcf15e71434a5056ec071eb07fa04a764e9608c9c7a712d0f0ba8229312c69d8"
+  "release_url": "https://github.com/Dolike-moca/Dolikepet/releases/tag/0.2.1",
+  "download_url": "https://github.com/Dolike-moca/Dolikepet/releases/download/0.2.1/Dolikepet-0.2.1-windows-x64.zip",
+  "size_bytes": 46761211,
+  "sha256": "8285dad82297bff3e3f8028dd61482cdf94db60f22c17a0535b26937d6fbe673"
 }
