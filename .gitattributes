@@ -9,3 +9,7 @@
 *.ico binary
 *.moc3 binary
 
+# The asset registry hashes raw bytes, including JSON metadata line endings.
+/Game/assets/library/** -text
+/Game/model/runtime/** -text
+
