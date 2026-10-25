@@ -14,6 +14,7 @@ var updater := AppUpdate.new()
 var update_button := Button.new()
 var download_button := Button.new()
 var update_status := Label.new()
+var update_progress := ProgressBar.new()
 
 var activity := OptionButton.new()
 var activity_hint := Label.new()
@@ -183,12 +184,15 @@ func _ready() -> void:
 	update_status.add_theme_font_size_override("font_size", 13)
 	update_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	layout.add_child(update_status)
+	update_progress.custom_minimum_size.y = 18
+	layout.add_child(update_progress)
 	update_button.text = "检查更新"
 	update_button.pressed.connect(updater.check)
 	layout.add_child(update_button)
-	download_button.text = "查看并下载新版本"
 	download_button.pressed.connect(func():
-		if not updater.release_url.is_empty(): OS.shell_open(updater.release_url))
+		if updater.has_download():
+			OS.shell_open(updater.verified_path.get_base_dir())
+		else: updater.download_update())
 	layout.add_child(download_button)
 	var releases_button := Button.new()
 	releases_button.text = "GitHub 发布页"
@@ -222,8 +226,11 @@ func _fields() -> Array[SpinBox]:
 
 func _update_version_status() -> void:
 	update_status.text = updater.message
-	update_button.disabled = updater.state == "checking"
-	download_button.visible = updater.state == "available"
+	update_button.disabled = updater.busy()
+	update_progress.visible = updater.state in ["downloading","verifying"]
+	update_progress.value = updater.progress*100.0
+	download_button.visible = updater.has_download() or updater.state in ["available","download_error","ready"]
+	download_button.text = "打开下载文件夹" if updater.has_download() else ("重试下载" if updater.state == "download_error" else "立即下载新版本")
 
 func _duration_row(layout: VBoxContainer, label: String, minutes: SpinBox, seconds: SpinBox) -> void:
 	var row := HBoxContainer.new()

@@ -1,6 +1,6 @@
-# 从源码构建 Dolikepet 0.2.0
+# 从源码构建 Dolikepet 0.2.1
 
-源码对应 **0.2.0「纳垢的赐福」**。这是可开发的 Godot 工程；只想游玩，请直接下载 [Windows 游玩包](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.2.0)。
+源码对应 **0.2.1「纳垢的赐福」**。这是可开发的 Godot 工程；只想游玩，请直接下载 [Windows 游玩包](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.2.1)。
 
 ## 准备环境
 
@@ -52,7 +52,10 @@ python Game/tools/manage.py check
 python Game/tools/test-release.py --group logic
 python Game/tools/test-release.py --group native
 python Game/tools/test-release.py --group render
+python Game/tools/test-auto-update.py
 ```
+
+自动更新测试使用本机 HTTP 服务和独立缓存，覆盖离线重试、完整性校验、缓存修复和取消下载，不请求 GitHub 或访问玩家文件。
 
 渲染测试需要可用的桌面与 OpenGL 图形环境，可能短暂创建窗口。测试数据与日志位于 `_work/tests`，不应使用真实待消化文件。开发运行与游玩版使用相同的 Godot 用户设置名称；如需完全隔离人工测试，请使用独立的 Windows 测试账号。
 

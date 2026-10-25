@@ -88,6 +88,7 @@ var hit_viewport := SubViewport.new()
 var native_hit_testing := false
 var drag_input = DesktopDrag.new()
 var dizzy_carry = DizzyCarry.new()
+var update_notices: Array[Dictionary] = []
 
 func _ready() -> void:
 	config = JSON.parse_string(FileAccess.get_file_as_string("res://config/pet.json"))
@@ -152,6 +153,19 @@ func _ready() -> void:
 	native_hit_testing = settings_path == SETTINGS
 	RenderingServer.frame_post_draw.connect(_refresh_pointer_region)
 	last_pointer = DisplayServer.mouse_get_position()
+	settings_window.updater.notice_requested.connect(_queue_update_notice)
+	if settings_path == SETTINGS: settings_window.updater.start_automatic()
+
+func _queue_update_notice(id: String, text: String) -> void:
+	update_notices.append({"id":id,"text":text})
+
+func _show_update_notice() -> void:
+	if update_notices.is_empty() or bubble.visible or dragging or menu.visible: return
+	if not get_window().visible or get_window().mode == Window.MODE_MINIMIZED: return
+	if catch_game.active() or juggle_game.active() or falling.active() or bowl_summon.active(): return
+	var notice: Dictionary = update_notices.pop_front()
+	_say(str(notice.text),7.0)
+	settings_window.updater.acknowledge_notice(str(notice.id))
 
 func _capture_hit_area() -> void:
 	# The speech CanvasLayer must not erase the cat underneath it or enlarge
@@ -288,6 +302,7 @@ func _process(dt: float) -> void:
 	_update_catch_game(dt)
 	if bubble.visible and Time.get_ticks_msec() / 1000.0 >= bubble_until:
 		bubble.hide()
+	_show_update_notice()
 	if dragging:
 		_poll_drag_pointer(dt)
 	elif not menu_holding and (falling.body.held or falling.state=="held" or drag_motion.state=="held"):

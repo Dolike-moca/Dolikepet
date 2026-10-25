@@ -6,14 +6,14 @@ func _initialize() -> void: call_deferred("run")
 func verify(value: bool, text: String) -> void:
 	count += 1
 	if not value: failures.append(text)
-func manifest(version := "0.2.0") -> Dictionary:
+func manifest(version := "0.2.1") -> Dictionary:
 	return {"schema":1, "channel":"stable", "platform":"windows-x86_64", "version":version,
 		"release_url":Update.REPOSITORY+"/releases/tag/"+version,
 		"download_url":Update.REPOSITORY+"/releases/download/"+version+"/Dolikepet-"+version+"-windows-x64.zip",
 		"size_bytes":123, "sha256":"a".repeat(64)}
 func run() -> void:
 	verify(ProjectSettings.get_setting("application/config/version") == Update.VERSION, "project version must match feed client")
-	verify(Update.VERSION=="0.2.0" and Update.RELEASE_NAME=="纳垢的赐福", "release version and name")
+	verify(Update.VERSION=="0.2.1" and Update.RELEASE_NAME=="纳垢的赐福", "release version and name")
 	verify(Update.newer("0.2.0","beta0.1.0"), "upgrade from original beta numbering")
 	verify(not Update.newer("beta0.2.0","0.2.0"), "compatibility tag is not a newer build")
 	verify(Update.newer("0.3.0","0.2.0"), "next stable version compares correctly")
@@ -34,7 +34,10 @@ func run() -> void:
 	root.add_child(page)
 	await process_frame
 	var service = page.updater
-	verify(service.state=="idle", "no automatic network request on startup")
+	service.auto_download = false
+	service.cache_dir = ProjectSettings.globalize_path("res://../../_work/tests/update-unit")
+	service.feed_url = "http://127.0.0.1:1/unavailable"
+	verify(service.state=="idle", "host connects notices before scheduling startup check")
 	verify(not page.download_button.visible and not page.update_button.disabled,"initial settings controls")
 	page.digestion_hours.value = 12
 	service._completed(HTTPRequest.RESULT_SUCCESS,200,[],JSON.stringify(manifest("beta0.10.0")).to_utf8_buffer())
@@ -49,7 +52,7 @@ func run() -> void:
 		verify(service.state=="error" and not page.update_button.disabled,"HTTP error allows retry")
 	for result in [HTTPRequest.RESULT_TIMEOUT,HTTPRequest.RESULT_CANT_CONNECT,HTTPRequest.RESULT_TLS_HANDSHAKE_ERROR,HTTPRequest.RESULT_BODY_SIZE_LIMIT_EXCEEDED]:
 		service._completed(result,0,[],PackedByteArray())
-		verify(service.state=="error" and service.release_url.is_empty(),"network error must not offer stale download")
+		verify(service.state=="error" and not page.download_button.visible and service.next_check>=60.0,"network errors schedule retry without offering unverified files")
 	service._completed(HTTPRequest.RESULT_SUCCESS,200,[],"<html>bad gateway</html>".to_utf8_buffer())
 	verify(service.state=="error","non-JSON rejected")
 	service.check()
