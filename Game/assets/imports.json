@@ -141,6 +141,11 @@
       "path": "Godot/assets/app/icon.png.import",
       "sha256": "6b9e3dc221eb8c229daa64cdf79060de30489d90b4c872965001889b7cde3ccc",
       "content": "[remap]\n\nimporter=\"texture\"\ntype=\"CompressedTexture2D\"\nuid=\"uid://bswcd86wigp64\"\npath=\"res://.godot/imported/icon.png-a7d7818df7d8ccf477913a583a989b19.ctex\"\nmetadata={\n\"vram_texture\": false\n}\n\n[deps]\n\nsource_file=\"res://assets/app/icon.png\"\ndest_files=[\"res://.godot/imported/icon.png-a7d7818df7d8ccf477913a583a989b19.ctex\"]\n\n[params]\n\ncompress/mode=0\ncompress/high_quality=false\ncompress/lossy_quality=0.7\ncompress/uastc_level=0\ncompress/rdo_quality_loss=0.0\ncompress/hdr_compression=1\ncompress/normal_map=0\ncompress/channel_pack=0\nmipmaps/generate=false\nmipmaps/limit=-1\nroughness/mode=0\nroughness/src_normal=\"\"\nprocess/channel_remap/red=0\nprocess/channel_remap/green=1\nprocess/channel_remap/blue=2\nprocess/channel_remap/alpha=3\nprocess/fix_alpha_border=true\nprocess/premult_alpha=false\nprocess/normal_map_invert_y=false\nprocess/hdr_as_srgb=false\nprocess/hdr_clamp_exposure=false\nprocess/size_limit=0\ndetect_3d/compress_to=1\n"
+    },
+    {
+      "path": "Godot/assets/feeding/magic_mushroom.png.import",
+      "sha256": "d7c9d52c4847d1772e6582a1b718eb46bd72e8d88b53d02b8ca791c905c3b209",
+      "content": "[remap]\n\nimporter=\"texture\"\ntype=\"CompressedTexture2D\"\nuid=\"uid://kpu4cgpay244\"\npath=\"res://.godot/imported/magic_mushroom.png-dbf7f8dc144265651ffa67ec1d433e76.ctex\"\nmetadata={\n\"vram_texture\": false\n}\n\n[deps]\n\nsource_file=\"res://assets/feeding/magic_mushroom.png\"\ndest_files=[\"res://.godot/imported/magic_mushroom.png-dbf7f8dc144265651ffa67ec1d433e76.ctex\"]\n\n[params]\n\ncompress/mode=0\ncompress/high_quality=false\ncompress/lossy_quality=0.7\ncompress/uastc_level=0\ncompress/rdo_quality_loss=0.0\ncompress/hdr_compression=1\ncompress/normal_map=0\ncompress/channel_pack=0\nmipmaps/generate=false\nmipmaps/limit=-1\nroughness/mode=0\nroughness/src_normal=\"\"\nprocess/channel_remap/red=0\nprocess/channel_remap/green=1\nprocess/channel_remap/blue=2\nprocess/channel_remap/alpha=3\nprocess/fix_alpha_border=true\nprocess/premult_alpha=false\nprocess/normal_map_invert_y=false\nprocess/hdr_as_srgb=false\nprocess/hdr_clamp_exposure=false\nprocess/size_limit=0\ndetect_3d/compress_to=1\n"
     }
   ]
 }

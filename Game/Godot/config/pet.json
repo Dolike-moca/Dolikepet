@@ -1,8 +1,8 @@
 {
   "model": "model/runtime/pet.model3.json",
-  "windowSize": 420,
-  "minimumSize": 240,
-  "maximumSize": 800,
+  "windowSize": 300,
+  "minimumSize": 150,
+  "maximumSize": 600,
   "alwaysOnTop": true,
   "gaze": {
     "enabled": true,

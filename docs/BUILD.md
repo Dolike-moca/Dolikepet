@@ -1,6 +1,6 @@
-# 从源码构建 Dolikepet 0.2.1
+# 从源码构建 Dolikepet 0.3.0
 
-源码对应 **0.2.1「纳垢的赐福」**。这是可开发的 Godot 工程；只想游玩，请直接下载 [Windows 游玩包](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.2.1)。
+源码对应 **0.3.0「纳垢的赐福」**。这是可开发的 Godot 工程；只想游玩，请直接下载 [Windows 游玩包](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.3.0)。
 
 ## 准备环境
 

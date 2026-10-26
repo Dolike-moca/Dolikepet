@@ -29,6 +29,9 @@ const JuggleMotion = preload("res://scripts/juggle_motion.gd")
 const PetHitArea = preload("res://scripts/pet_hit_area.gd")
 const DesktopDrag = preload("res://scripts/desktop_drag.gd")
 const DizzyCarry = preload("res://scripts/dizzy_carry.gd")
+const PetSize = preload("res://scripts/pet_size.gd")
+const SizeChange = preload("res://scripts/size_change.gd")
+const SizeFlash = preload("res://scripts/size_flash.gd")
 const SETTINGS := "user://desktop-pet.cfg"
 const ACTIONS := ["normal", "blink", "closed", "happy", "closedHappy", "talk", "chew"]
 const LABELS := ["恢复正常", "眨一下眼", "闭眼", "张嘴笑", "闭眼笑", "说话口型演示（5 秒）", "咀嚼演示"]
@@ -89,6 +92,11 @@ var native_hit_testing := false
 var drag_input = DesktopDrag.new()
 var dizzy_carry = DizzyCarry.new()
 var update_notices: Array[Dictionary] = []
+var size_change = SizeChange.new()
+var size_flash = SizeFlash.new()
+var size_anchor := Vector2(NAN,NAN)
+var size_canvas_pixels := 0 # Visible extent while a larger transparent canvas is reserved.
+var size_wheel_quiet := 0.0
 
 func _ready() -> void:
 	config = JSON.parse_string(FileAccess.get_file_as_string("res://config/pet.json"))
@@ -113,8 +121,12 @@ func _ready() -> void:
 	food_dialog.canceled.connect(func(): food_dialog_open = false)
 	add_child(falling)
 	_load_settings()
+	_update_size_menu()
 	_setup_hit_viewport()
+	add_child(size_flash)
+	size_flash.setup(hit_viewport)
 	add_child(settings_window)
+	settings_window.common_settings_saved.connect(_apply_common_settings)
 	settings_window.settings_saved.connect(_apply_auto_sit_settings)
 	settings_window.visibility_changed.connect(func():
 		if not settings_window.visible:
@@ -162,7 +174,7 @@ func _queue_update_notice(id: String, text: String) -> void:
 func _show_update_notice() -> void:
 	if update_notices.is_empty() or bubble.visible or dragging or menu.visible: return
 	if not get_window().visible or get_window().mode == Window.MODE_MINIMIZED: return
-	if catch_game.active() or juggle_game.active() or falling.active() or bowl_summon.active(): return
+	if catch_game.active() or juggle_game.active() or falling.active() or bowl_summon.active() or size_change.pending(): return
 	var notice: Dictionary = update_notices.pop_front()
 	_say(str(notice.text),7.0)
 	settings_window.updater.acknowledge_notice(str(notice.id))
@@ -238,7 +250,9 @@ func _setup_menu() -> void:
 	menu.add_item("桌宠设置…", 14)
 	menu.add_item("计分板…", 23)
 	menu.add_separator()
-	menu.add_item("恢复默认大小与位置", 20)
+	menu.add_item("大小 100%", 32)
+	menu.set_item_disabled(menu.get_item_index(32),true)
+	menu.add_item("恢复默认大小与位置（100%）", 20)
 	if development: menu.add_item("重新加载模型", 21)
 	menu.add_item("退出桌宠", 22)
 	menu.add_separator()
@@ -263,6 +277,12 @@ func _setup_menu() -> void:
 	menu.add_child(satiety_bar)
 	_update_satiety_menu()
 	menu.id_pressed.connect(_menu_action)
+
+func _update_size_menu() -> void:
+	var percent := 100.0*_pet_size().x/float(config.windowSize)
+	var text := "大小 %.0f%%" % percent
+	if size_change.pending(): text += " → %d%%" % roundi(100.0*size_change.target/PetSize.BASE)
+	menu.set_item_text(menu.get_item_index(32),text)
 
 func _update_satiety_menu() -> void:
 	var percent := clampf(100.0*satiety.used/maxi(1,satiety.capacity),0.0,100.0)
@@ -296,6 +316,7 @@ func _position_bubble() -> void:
 	bubble.size = Vector2(width, 0)
 
 func _process(dt: float) -> void:
+	size_wheel_quiet=maxf(0.0,size_wheel_quiet-dt)
 	if not ready_for_input:
 		return
 	if menu.visible: _update_satiety_menu()
@@ -314,16 +335,16 @@ func _process(dt: float) -> void:
 		if menu_holding and not menu.visible and window.mode != Window.MODE_MINIMIZED:
 			_release_menu_hold()
 		var drag_paused: bool = food_dialog_open or window.mode == Window.MODE_MINIMIZED
-		var bowl_blocked: bool = catch_game.active() or juggle_game.active() or dragging or menu.visible or drag_paused or drag_motion.active() or falling.active() or landing.active() or bowl_hit.active()
+		var bowl_blocked: bool = catch_game.active() or juggle_game.active() or dragging or menu.visible or drag_paused or drag_motion.active() or falling.active() or landing.active() or bowl_hit.active() or size_change.pending()
 		var bowl_step := _update_bowl(dt,bowl_blocked,area)
 		if bowl_step.move: window.position = Vector2i(bowl_step.position.round())
 		if not falling.active(): falling.physical_facing = 1.0 if pet.facing_scale >= 0.0 else -1.0
-		falling.set_geometry(Vector2(window.size), falling.area if falling.active() else area, pet.physics_anchor(falling.physical_facing if falling.active() else pet.facing_scale))
+		falling.set_geometry(Vector2(_pet_size()), falling.area if falling.active() else area, pet.physics_anchor(falling.physical_facing if falling.active() else pet.facing_scale))
 		var drag_at: Vector2 = falling.window_position() if falling.active() else Vector2(window.position)
 		drag_motion.pointer_previous = drag_at + falling.body.spring_gap
-		if drag_motion.update(dt, drag_at, Vector2(window.size), drag_paused):
+		if drag_motion.update(dt, drag_at, Vector2(_pet_size()), drag_paused):
 			idle_sitting.interact(false)
-		var fall: Dictionary = falling.update(dt, Vector2(window.position), Vector2(window.size), falling.area, dragging or menu_holding or bowl_jump.active() or bowl_step.move, drag_paused)
+		var fall: Dictionary = falling.update(dt, Vector2(window.position), Vector2(_pet_size()), falling.area, dragging or menu_holding or bowl_jump.active() or bowl_step.move, drag_paused)
 		if fall.started:
 			if not bowl_hit.active():
 				pickup.cancel(true)
@@ -337,7 +358,7 @@ func _process(dt: float) -> void:
 		if fall.move:
 			window.position = Vector2i(fall.position.round())
 			save_timer = 0.6
-		var hit_grounded: bool = fall.landed or window.position.y+window.size.y>=area.end.y-3.0
+		var hit_grounded: bool = fall.landed or window.position.y+_pet_size().y>=area.end.y-3.0
 		if bowl_hit.update(dt,hit_grounded,landing.active(),drag_paused or menu.visible):
 			bowl_jump.cancel()
 			landing.cancel()
@@ -360,7 +381,13 @@ func _process(dt: float) -> void:
 				manual_sit_pending = false
 				idle_sitting.manual_pose()
 				pet.set_seated(true)
-		var busy: bool = catch_game.active() or juggle_game.active() or dragging or menu.visible or food_dialog_open \
+		_advance_size_change(dt, drag_paused or dragging or menu_holding or menu.visible or settings_window.visible \
+			or catch_game.active() or juggle_game.active() or falling.active() or drag_motion.active() \
+			or landing.active() or bowl_hit.active() or bowl_summon.active() or bowl_jump.active() \
+			or pickup.active() or behavior.chewing.active() or roaming.weight > 0.001 \
+			or (pet.sitting.amount > 0.001 and pet.sitting.amount < 0.999) \
+			or behavior.time < behavior.talk_until or behavior.time < behavior.reaction_until)
+		var busy: bool = size_change.pending() or catch_game.active() or juggle_game.active() or dragging or menu.visible or food_dialog_open \
 			or drag_motion.active() or falling.active() or landing.active() or fall.landed \
 			or get_window().mode == Window.MODE_MINIMIZED \
 			or behavior.time < behavior.talk_until or behavior.time < behavior.reaction_until
@@ -368,7 +395,7 @@ func _process(dt: float) -> void:
 		if idle_sitting.advance(dt, busy or roaming.rest_requested or is_finite(bowl_step.goal), pet.sitting.seated):
 			roaming.request_rest()
 			bubble.hide()
-		var movement: Dictionary = roaming.update(dt, Vector2(window.position), Vector2(window.size),
+		var movement: Dictionary = roaming.update(dt, Vector2(window.position), Vector2(_pet_size()),
 			area, pet.sitting.amount, pet.sitting.seated, idle_sitting.automatically_seated, busy, menu.visible and not drag_paused,bowl_step.goal)
 		if movement.move:
 			window.position = Vector2i(movement.position.round())
@@ -380,6 +407,7 @@ func _process(dt: float) -> void:
 		var settled_pose: bool = pet.sitting.amount>=0.999 if pickup.meal_enabled else pet.sitting.amount<0.0001
 		var pickup_pose: Dictionary = pickup.update(dt, settled_pose \
 			and roaming.weight < 0.0001 and not falling.active() and not landing.active(), drag_paused or bowl_hit.active())
+		pickup_pose.merge(size_change.pose(),true)
 		for eaten in pickup.take_finished(): bowl_files.consume(eaten)
 		var bowl_food: bool = pickup.current != null and not pickup.current.source.is_empty()
 		if bowl_food:
@@ -391,15 +419,15 @@ func _process(dt: float) -> void:
 			and not drag_motion.active() and not falling.active() and not landing.active() and not bowl_hit.active() \
 			and not settings_window.visible and get_window().mode != Window.MODE_MINIMIZED
 		var anchor: Vector2 = pet.gaze_anchor()
-		if pickup.active():
+		if pickup.active() or size_change.performing():
 			cursor = cursor.lerp(pet.food_gaze(pickup_pose),pickup_pose.get("pickupLook",0.0))
 			active = not drag_paused and not bowl_hit.active()
 		cursor.x = anchor.x + (cursor.x - anchor.x) * signf(roaming.facing_scale)
 		if roaming.weight > 0.0:
-			cursor = cursor.lerp(anchor + Vector2(-get_window().size.x * 0.22, 0.0), roaming.weight)
+			cursor = cursor.lerp(anchor + Vector2(-_pet_size().x * 0.22, 0.0), roaming.weight)
 			active = true
 		var pose: Dictionary = behavior.update(dt, cursor, anchor,
-			minf(get_window().size.x, get_window().size.y), active, drag_paused or bowl_hit.active())
+			float(_pet_size().x), active, drag_paused or bowl_hit.active())
 		# Keep animation metadata out of the persistent mouse-follow spring values.
 		pose = pose.duplicate()
 		pose.merge(pickup_pose,true)
@@ -497,8 +525,10 @@ func _input(event: InputEvent) -> void:
 			_zoom(24 if event.button_index == MOUSE_BUTTON_WHEEL_UP else -24)
 
 func _open_menu(pointer: Vector2i) -> void:
+	_finish_size_canvas()
 	bowl_window.end_juggle("打开菜单 · 本轮结束")
 	catch_game.finish("打开菜单 · 本轮结束")
+	_update_size_menu()
 	_update_satiety_menu()
 	# A menu stops activity without waking a seated pet or cancelling a landing.
 	var area := Rect2(DisplayServer.screen_get_usable_rect(get_window().current_screen))
@@ -568,6 +598,7 @@ func _update_drag_pointer(cursor: Vector2i, pressed: bool, _dt: float = 1.0 / 60
 	if not pressed: _finish_drag()
 
 func _begin_grab(user_grab := true) -> void:
+	_finish_size_canvas()
 	if not pet.available:
 		return
 	if user_grab and not juggle_game.active():
@@ -650,7 +681,10 @@ func _menu_action(id: int) -> void:
 		14:
 			settings_window.show_settings(idle_sitting.enabled,
 				idle_sitting.minimum_seconds, idle_sitting.maximum_seconds, roaming.mode, falling.enabled,bowl_capacity,
-				satiety.capacity,satiety.digestion_hours,satiety.auto_open,satiety.used,satiety.resting)
+				satiety.capacity,satiety.digestion_hours,satiety.auto_open,satiety.used,satiety.resting,
+				{"size": size_change.target if size_change.pending() else get_window().size.x, "default_size": int(config.windowSize),
+				"minimum_size": int(config.minimumSize), "maximum_size": int(config.maximumSize),
+				"gaze": gaze_enabled, "topmost": get_window().always_on_top})
 		15:
 			_start_pickup_demo()
 		16:
@@ -669,7 +703,7 @@ func _menu_action(id: int) -> void:
 			drag_motion.cancel()
 			falling.cancel()
 			motion_reset_pending = true
-			get_window().size = Vector2i.ONE * int(config.windowSize)
+			_request_size(PetSize.BASE)
 			var area := DisplayServer.screen_get_usable_rect(get_window().current_screen)
 			get_window().position = area.end - get_window().size - Vector2i(32, 32)
 			falling.reposition(Vector2(get_window().position))
@@ -738,13 +772,71 @@ func _fit_position(pos: Vector2i, size: Vector2i) -> Vector2i:
 		clampi(pos.y, area.position.y, maxi(area.position.y, area.end.y - size.y)))
 
 func _zoom(amount: int) -> void:
+	# Either wheel direction owns one preset until it finishes, including time
+	# spent waiting for another action. A continuing wheel gesture also stays
+	# locked after a short shrink finishes; ignored ticks never queue a resize.
+	if amount==0: return
+	var continuing:=size_wheel_quiet>0.0
+	size_wheel_quiet=0.35
+	if continuing or size_change.pending(): return
+	_request_size(PetSize.step(get_window().size.x,signi(amount)))
+
+func _request_size(pixels: int) -> void:
 	_register_interaction()
-	var old_size := get_window().size
-	var size := clampi(old_size.x + amount, int(config.minimumSize), int(config.maximumSize))
+	size_change.request(pixels,_pet_size().x)
+	# Finish a currently held file, without queueing more food ahead of the prop.
+	if size_change.pending() and pickup.meal_enabled: pickup.foods.clear()
+	_update_size_menu()
+	save_timer = 0.3
+
+func _advance_size_change(dt: float, blocked: bool) -> void:
+	var old_state: String = size_change.state
+	if blocked: _finish_size_canvas()
+	size_change.update(dt,_pet_size().x,blocked)
+	if blocked: size_anchor = Vector2(NAN,NAN)
+	elif old_state == "waiting" and size_change.performing():
+		size_anchor = Vector2(get_window().position)+Vector2(get_window().size)*Vector2(0.5,1.0)
+	if old_state == "waiting" and size_change.state == "summon":
+		behavior.command("normal")
+		bubble.hide()
+	if size_change.performing() or size_change.finished:
+		_resize_now(roundi(size_change.value))
+	if size_change.finished:
+		_finish_size_canvas()
+		size_anchor = Vector2(NAN,NAN)
+		_update_size_menu()
+		idle_sitting.interact(false)
+		_save_settings()
+	size_flash.apply(size_change.flash(),Vector2(get_window().size))
+
+func _pet_size() -> Vector2i:
+	return Vector2i.ONE*size_canvas_pixels if size_canvas_pixels>0 else get_window().size
+
+func _finish_size_canvas() -> void:
+	if size_canvas_pixels<=0: return
+	var pixels:=size_canvas_pixels
+	size_canvas_pixels=0
+	# The completed model already occupies the top-left of the canvas, so this
+	# removes only transparent pixels. Native clipping cannot cut off its feet.
+	get_window().size=Vector2i.ONE*pixels
+	pet.fit(Vector2.ONE*pixels)
+
+func _resize_now(pixels: int) -> void:
+	var old_size := _pet_size()
+	var size := clampi(pixels, int(config.minimumSize), int(config.maximumSize))
+	if size == old_size.x: return
 	var new_size := Vector2i.ONE * size
-	var pos := get_window().position + Vector2i((old_size.x - size) / 2, old_size.y - size)
-	get_window().size = new_size
+	if not size_anchor.is_finite(): size_anchor = Vector2(get_window().position)+Vector2(old_size)*Vector2(0.5,1.0)
+	var pos := Vector2i((size_anchor-Vector2(new_size)*Vector2(0.5,1.0)).round())
+	# Keep a stable alpha surface while the model scales. Reallocating the native
+	# window each frame lets DWM show the old, oversized body in a smaller client
+	# area. The model stays at canvas origin and the window follows its foot anchor.
+	size_canvas_pixels=size
+	motion_reset_pending=true
+	get_window().size=Vector2i.ONE*maxi(get_window().size.x,maxi(size,size_change.target))
 	get_window().position = _fit_position(pos, new_size)
+	pet.fit(Vector2(new_size))
+	if bowl_window.is_inside_tree(): bowl_window.fit_pet(size)
 	drag_motion.reposition(Vector2(get_window().position))
 	falling.set_geometry(Vector2(new_size), Rect2(DisplayServer.screen_get_usable_rect(get_window().current_screen)), pet.physics_anchor(falling.physical_facing if falling.active() else pet.facing_scale))
 	falling.reposition(Vector2(get_window().position))
@@ -752,16 +844,17 @@ func _zoom(amount: int) -> void:
 		drag_window = get_window().position
 		drag_pointer = DisplayServer.mouse_get_position()
 		if drag_moved: falling.begin(Vector2(get_window().position), Vector2(drag_pointer), pet.facing_scale)
-	save_timer = 0.3
 
 func _resized() -> void:
 	motion_reset_pending = true
+	_update_size_menu()
 	_sync_hit_viewport()
-	pet.fit(Vector2(get_window().size))
+	pet.fit(Vector2(_pet_size()))
 	_position_bubble()
-	if bowl_window.is_inside_tree(): bowl_window.fit_pet(get_window().size.y)
+	if bowl_window.is_inside_tree(): bowl_window.fit_pet(_pet_size().y)
 
 func _load_settings() -> void:
+	size_canvas_pixels=0
 	var settings := ConfigFile.new()
 	var has_saved := settings.load(settings_path) == OK
 	# Per-throw scoring has a separate record; preserve the old preview's
@@ -769,7 +862,8 @@ func _load_settings() -> void:
 	var saved_best = settings.get_value("catch_game","best_per_throw",0)
 	catch_game.best = clampi(int(saved_best),0,9000000000000000) if saved_best is int or saved_best is float else 0
 	var size := int(settings.get_value("window", "size", config.windowSize))
-	size = clampi(size, int(config.minimumSize), int(config.maximumSize))
+	size = PetSize.nearest(size)
+	size_change.initialize(size)
 	get_window().size = Vector2i.ONE * size
 	var area := DisplayServer.screen_get_usable_rect(DisplayServer.get_primary_screen())
 	var default_pos := area.end - get_window().size - Vector2i(32, 32)
@@ -805,6 +899,14 @@ func _register_interaction(wake: bool = true) -> void:
 	if idle_sitting.interact(wake and not landing.active()) and pet.available:
 		pet.set_seated(false)
 
+func _apply_common_settings(pixels: int, gaze: bool, topmost: bool) -> void:
+	_request_size(pixels)
+	gaze_enabled = gaze
+	get_window().always_on_top = topmost
+	bowl_window.always_on_top = topmost
+	catch_score.always_on_top = topmost
+	_save_settings()
+
 func _apply_auto_sit_settings(enabled: bool, minimum: float, maximum: float, roaming_mode: String = "", auto_fall_enabled: Variant = null) -> void:
 	idle_sitting.configure(enabled, minimum, maximum)
 	if not roaming_mode.is_empty():
@@ -816,7 +918,7 @@ func _save_settings() -> void:
 	var settings := ConfigFile.new()
 	settings.load(settings_path)
 	settings.set_value("catch_game","best_per_throw",catch_game.best)
-	settings.set_value("window", "size", get_window().size.x)
+	settings.set_value("window", "size", size_change.target if size_change.pending() else PetSize.nearest(get_window().size.x))
 	settings.set_value("window", "position", get_window().position)
 	settings.set_value("window", "always_on_top", get_window().always_on_top)
 	settings.set_value("pet", "gaze_enabled", gaze_enabled)
@@ -902,7 +1004,7 @@ func _bowl_hit_target() -> Dictionary:
 		for point in cap: head += point/float(cap.size())
 		var arm: Vector2 = head-falling.body.to_global(falling.body.center_of_mass)
 		head_speed = falling.body.linear_velocity+Vector2(-arm.y,arm.x)*falling.body.angular_velocity
-	return {"cap":cap,"extent":float(get_window().size.y),"juggle":can_juggle,"velocity":head_speed}
+	return {"cap":cap,"extent":float(_pet_size().y),"juggle":can_juggle,"velocity":head_speed}
 
 func _on_juggled(event: Dictionary) -> void:
 	if not juggle_game.active():

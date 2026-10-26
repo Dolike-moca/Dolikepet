@@ -9,6 +9,13 @@ uniform vec4 meal_cuts[12];
 uniform int cut_index = -1;
 uniform float cut_progress : hint_range(0.0,1.0) = 0.0;
 uniform vec4 icon_frame = vec4(0.0,0.0,1.0,1.0);
+uniform float perspective_depth = 0.0;
+
+void vertex() {
+	// Only the growth mushroom uses this shallow near/far taper. File icons
+	// keep their exact approved geometry when perspective_depth is zero.
+	VERTEX.y *= mix(1.0-perspective_depth,1.0,UV.x);
+}
 
 void fragment() {
 	// CanvasItem COLOR already includes the texture and instance modulation.

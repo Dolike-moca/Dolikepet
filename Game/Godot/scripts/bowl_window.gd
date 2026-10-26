@@ -40,6 +40,7 @@ var rebound = Rebound.new()
 var rest_size := Vector2i.ZERO
 var margin := Vector2.ZERO
 var silhouette := PackedVector2Array()
+var source_hull := PackedVector2Array()
 var arrival = Arrival.new()
 var arrival_area := Rect2()
 var juggle = JuggleFlight.new()
@@ -81,17 +82,19 @@ func fit_pet(pet_size: float) -> void:
 	position.y = int(old_bottom)-size.y
 	at = Vector2(position)
 	# Polygon follows the real silhouette; transparent corners remain clickable through.
-	var bitmap := BitMap.new()
-	bitmap.create_from_image_alpha(ART.get_image(),0.06)
-	# Godot's polygons for a cropped Rect2i are crop-local. Using the full
-	# bitmap avoids subtracting USED.position twice (which clipped the feet).
-	var contours := bitmap.opaque_to_polygons(Rect2i(Vector2i.ZERO,bitmap.get_size()),2.0)
-	if not contours.is_empty():
+	if source_hull.is_empty():
+		# The source image is immutable. Read its alpha once, not on every frame
+		# of pet scaling: repeated full-image readbacks stall desktop presentation.
+		var bitmap := BitMap.new()
+		bitmap.create_from_image_alpha(ART.get_image(),0.06)
+		# Full-image contours keep USED.position from being subtracted twice.
+		var contours := bitmap.opaque_to_polygons(Rect2i(Vector2i.ZERO,bitmap.get_size()),2.0)
 		var all_points := PackedVector2Array()
 		for contour in contours: all_points.append_array(contour)
-		var best := Geometry2D.convex_hull(all_points)
+		if not all_points.is_empty(): source_hull = Geometry2D.convex_hull(all_points)
+	if not source_hull.is_empty():
 		var points := PackedVector2Array()
-		for point in best: points.append(sprite.position+point*art_scale)
+		for point in source_hull: points.append(sprite.position+point*art_scale)
 		# Win32 also uses this input polygon as a visual window region. Leave
 		# two display pixels for edge filtering and retain all three pot feet.
 		var padded := Geometry2D.offset_polygon(points,2.0,Geometry2D.JOIN_ROUND)

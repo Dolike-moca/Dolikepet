@@ -20,6 +20,8 @@ def main():
     digest = hashlib.sha256(payload).hexdigest()
     requests = {}
     current = re.search(r'config/version="([^"]+)"', (GAME/'project.godot').read_text(encoding='utf-8'))[1]
+    major, minor, patch = map(int, current.split('.'))
+    newer_version = f'{major}.{minor}.{patch+1}'
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_args): pass
@@ -30,7 +32,7 @@ def main():
                 if category == 'feed':
                     if scenario == 'offline' and requests[self.path] == 1:
                         self.send_error(503); return
-                    version = current if scenario == 'current' else '0.2.2'
+                    version = current if scenario == 'current' else newer_version
                     repo = 'https://github.com/Dolike-moca/Dolikepet'
                     data = dict(schema=1, channel='stable', platform='windows-x86_64', version=version,
                         release_url=repo+'/releases/tag/'+version,

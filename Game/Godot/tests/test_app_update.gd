@@ -6,14 +6,14 @@ func _initialize() -> void: call_deferred("run")
 func verify(value: bool, text: String) -> void:
 	count += 1
 	if not value: failures.append(text)
-func manifest(version := "0.2.1") -> Dictionary:
+func manifest(version := "0.3.0") -> Dictionary:
 	return {"schema":1, "channel":"stable", "platform":"windows-x86_64", "version":version,
 		"release_url":Update.REPOSITORY+"/releases/tag/"+version,
 		"download_url":Update.REPOSITORY+"/releases/download/"+version+"/Dolikepet-"+version+"-windows-x64.zip",
 		"size_bytes":123, "sha256":"a".repeat(64)}
 func run() -> void:
 	verify(ProjectSettings.get_setting("application/config/version") == Update.VERSION, "project version must match feed client")
-	verify(Update.VERSION=="0.2.1" and Update.RELEASE_NAME=="纳垢的赐福", "release version and name")
+	verify(Update.VERSION=="0.3.0" and Update.RELEASE_NAME=="色孽的赐福", "release version and name")
 	verify(Update.newer("0.2.0","beta0.1.0"), "upgrade from original beta numbering")
 	verify(not Update.newer("beta0.2.0","0.2.0"), "compatibility tag is not a newer build")
 	verify(Update.newer("0.3.0","0.2.0"), "next stable version compares correctly")

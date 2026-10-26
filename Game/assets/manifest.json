@@ -433,6 +433,13 @@
       "copies": [
         "Godot/assets/app/icon.ico"
       ]
+    },
+    {
+      "source": "assets/library/runtime/feeding/magic_mushroom.png",
+      "sha256": "28db5b92f3780be5958fe6d4b656d8b054da85b42e6ad3cbdd152b6c4faff8d3",
+      "copies": [
+        "Godot/assets/feeding/magic_mushroom.png"
+      ]
     }
   ],
   "baseLayers": [
@@ -987,6 +994,14 @@
           "size": [
             650,
             600
+          ]
+        },
+        {
+          "name": "magic_mushroom",
+          "source": "assets/library/runtime/feeding/magic_mushroom.png",
+          "position": [
+            400,
+            400
           ]
         }
       ]

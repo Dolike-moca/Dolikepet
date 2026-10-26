@@ -36,14 +36,15 @@ func opaque_point() -> Vector2:
 			if image.get_pixel(x,y).a>0.99: return Vector2(x,y)
 	return Vector2(-1,-1)
 func run() -> void:
-	var path := "res://../../_work/tests/physics-host-settings.cfg"
+	var path := ProjectSettings.globalize_path("res://../../_work/tests/physics-host-settings.cfg")
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	var settings := ConfigFile.new()
 	settings.set_value("window", "size", 420)
 	settings.set_value("window", "position", Vector2i(120, 100))
 	settings.set_value("pet", "auto_fall_enabled", false)
 	settings.set_value("pet", "roaming_mode", "off")
 	settings.set_value("pet", "auto_sit_enabled", false)
-	settings.save(path)
+	check(settings.save(path)==OK,"isolated settings fixture could not be saved")
 	app = Scene.instantiate()
 	app.settings_path = path
 	root.add_child(app)
@@ -116,9 +117,11 @@ func run() -> void:
 	app._begin_grab()
 	target = Vector2(app.drag_pointer)
 	await tick(20)
+	var held_size := root.size
 	app._zoom(24)
 	target = Vector2(app.drag_pointer)
 	await tick(8)
+	check(root.size==held_size and app.size_change.pending() and app.size_change.state=="waiting", "held resize did not wait for release")
 	check(app.falling.size == Vector2(root.size) and app.falling.body.position.is_finite(), "held resize failed")
 	app._finish_drag()
 	app.falling.configure(true)

@@ -704,6 +704,18 @@
       "attribution": "Copyright (c) 2026 Dolike-moca, project artwork and production contributions",
       "source": "https://github.com/Dolike-moca/Dolikepet",
       "licenseText": "../LICENSES/CC-BY-4.0.txt"
+    },
+    {
+      "path": "assets/library/runtime/feeding/magic_mushroom.png",
+      "sha256": "28db5b92f3780be5958fe6d4b656d8b054da85b42e6ad3cbdd152b6c4faff8d3",
+      "generatedCopies": [
+        "Godot/assets/feeding/magic_mushroom.png"
+      ],
+      "license": "LicenseRef-ThirdParty-Game-Art",
+      "attribution": "Magic Mushroom from The Binding of Isaac; original game-art rights remain with their respective holders.",
+      "source": "https://isaac.huijiwiki.com/wiki/C12",
+      "licenseText": "Godot/licenses/Magic-Mushroom-source.txt",
+      "modifications": "User-provided screenshot isolated/redrawn with imagegen into transparent PNG. Not relicensed under project MIT or CC BY."
     }
   ]
 }

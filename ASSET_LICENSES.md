@@ -27,6 +27,8 @@
 
 ## 项目美术及模型
 
+新增体型道具 `Game/assets/library/runtime/feeding/magic_mushroom.png` 来自用户提供的[魔法蘑菇页面](https://isaac.huijiwiki.com/wiki/C12)截图，经 imagegen 提取为透明 PNG。原游戏图像权利保留给原权利人，不纳入本项目的 MIT 或 CC BY 4.0 授权；来源记录见 `Game/Godot/licenses/Magic-Mushroom-source.txt`。
+
 项目素材来自角色素材整理、制作与模型处理过程。这里的版权声明针对 Dolike-moca 有权授权的项目美术及制作贡献，不把第三方原作归为项目原创，也不扩大第三方授权范围。Live2D SDK 本体和运行库是软件依赖，不属于这里开放的美术素材。
 
 当前素材的完整文件清单、哈希和运行副本关系在 [manifest.json](Game/assets/manifest.json)，逐文件许可与署名见 [licenses.json](Game/assets/licenses.json)。PSD、Cubism `.cmo3` 编辑工程和历史素材未包含在本仓库。生成的 `Game/Godot/assets` 与 `Game/Godot/model` 副本继承对应源素材的许可范围。

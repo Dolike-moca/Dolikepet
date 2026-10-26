@@ -234,11 +234,13 @@ func apply_props(body: Transform2D, pose: Dictionary, landing_upper := Transform
 	var item = pose.get("foodItem")
 	if item != active_food:
 		active_food = item
+		food.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if pose.get("sizeMushroom",false) else CanvasItem.TEXTURE_FILTER_LINEAR
 		food.texture = item.texture if item != null else Food
 		food_scale = item.display_scale if item != null else FOOD_WIDTH/Food.get_image().get_used_rect().size.x
 	if item != null: food_scale = pose.foodScale
 	food.offset = Vector2(food.texture.get_size())*0.5-(pose.foodSourceCenter if item != null else Vector2(Food.get_image().get_used_rect().get_center()))
 	food_material.set_shader_parameter("meal_food",item != null)
+	food_material.set_shader_parameter("perspective_depth",0.14 if pose.get("sizeMushroom",false) else 0.0)
 	if item != null:
 		var meal_cuts: PackedVector4Array = pose.foodCuts.duplicate()
 		meal_cuts.resize(12)

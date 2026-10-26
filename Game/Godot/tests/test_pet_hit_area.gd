@@ -58,8 +58,8 @@ func run() -> void:
 	check(app.pet.model.has_method("set_desktop_passthrough"),"missing native pixel-hit bridge")
 	var base: Dictionary = app.behavior.update(0.0,Vector2.ZERO,Vector2.ZERO,420,false).duplicate()
 	var scenarios := [
-		[240,false,{"facingScale":1.0}], [420,true,{"facingScale":1.0}],
-		[640,false,{"facingScale":-1.0}], [420,false,{"facingScale":0.35,"walkWeight":1.0,"walkPhase":0.6}],
+		[150,false,{"facingScale":1.0}], [420,true,{"facingScale":1.0}],
+		[600,false,{"facingScale":-1.0}], [420,false,{"facingScale":0.35,"walkWeight":1.0,"walkPhase":0.6}],
 		[420,false,{"facingScale":-1.0,"dragHeld":true,"dragHang":1.0,"dragFace":1.0,"dragTilt":0.3}],
 		[420,true,{"facingScale":1.0,"dizzyActive":true,"dizzyAlpha":1.0,"dizzyRehit":1.0,"landingUpperBounce":0.12}],
 	]
@@ -114,7 +114,7 @@ func run() -> void:
 		check(not app.dragging,"outside release left stuck dragging")
 		app.bubble.hide()
 	# Speech is visible UI but deliberately cannot grab the cat from far away.
-	for extent in [240,420]:
+	for extent in [150,600]:
 		app.bubble.hide()
 		await draw(base,extent,false)
 		var clean: Image = app.hit_area.image

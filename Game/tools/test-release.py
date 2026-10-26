@@ -7,6 +7,8 @@ LOGS=P/'_work/tests/logs'
 LOGIC=['test_parity','test_blink','test_meal','test_satiety','test_bowl_shout','test_bowl_edges','test_drag_eye_transition','test_roaming','test_walking_knees','test_bowl_impact','test_bowl_summon','test_catch_challenge','test_catch_physics','test_game_scores','test_juggle','test_bowl_roll','test_app_update']
 RENDER=['test_bowl','test_shared_arm_rig','test_feeding_hold_rig','test_food_scarf_depth','test_braid_depth','test_expression_masks','test_bite_handoff','test_bowl_drop','test_bowl_edge_host','test_bowl_host','test_bowl_e2e','test_menu_idle','test_settings_menu','test_bowl_hit_host','test_desktop_shell','test_bowl_startup','test_bowl_summon_host','test_catch_host','test_catch_score_lifecycle','test_score_board','test_juggle_host','test_juggle_render','test_pet_hit_area','test_physics_host','test_rehit_render','test_drag_release']
 RENDER += ['test_dizzy_grab']
+LOGIC += ['test_size_change']
+RENDER += ['test_size_change_host','test_mushroom_hold']
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--group',choices=['logic','render','native','all'],default='all');p.add_argument('--tests',nargs='*');args=p.parse_args()
@@ -16,7 +18,7 @@ def main():
         jobs.append((name,[str(ENGINE),'--path',str(G),*(['--headless'] if name in LOGIC else []),'--script','res://tests/'+name+'.gd']))
     if args.group in ['all','native']:
         for name in ['test_bowl_files','test_digestion','test_desktop_shell']:
-            jobs.append((name,['pwsh','-NoProfile','-ExecutionPolicy','Bypass','-File',str(G/'tests'/f'{name}.ps1')]))
+            jobs.append((name,['powershell','-NoProfile','-ExecutionPolicy','Bypass','-File',str(G/'tests'/f'{name}.ps1')]))
     for name,command in jobs:
         if args.tests and name not in args.tests:continue
         try:
