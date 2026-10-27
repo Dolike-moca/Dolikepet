@@ -2,10 +2,10 @@
   "schema": 1,
   "channel": "beta",
   "platform": "windows-x86_64",
-  "version": "beta0.3.0",
+  "version": "beta0.3.1",
   "release_name": "色孽的赐福",
-  "release_url": "https://github.com/DavidGump-070660/Dolikepet/releases/tag/beta0.3.0",
-  "download_url": "https://github.com/DavidGump-070660/Dolikepet/releases/download/beta0.3.0/Dolikepet-beta0.3.0-windows-x64.zip",
-  "size_bytes": 46946660,
-  "sha256": "e9202742accf3fb777a8b4befb79ec646b79e0c1f95790cd1766dd58c58191ac"
+  "release_url": "https://github.com/DavidGump-070660/Dolikepet/releases/tag/beta0.3.1",
+  "download_url": "https://github.com/DavidGump-070660/Dolikepet/releases/download/beta0.3.1/Dolikepet-beta0.3.1-windows-x64.zip",
+  "size_bytes": 46947274,
+  "sha256": "1bfa17b9aac0ca104d1c5adeacb2243401215640eb22afa16b4afbedd92e1e47"
 }

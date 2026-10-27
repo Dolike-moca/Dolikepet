@@ -4,11 +4,19 @@
 
 希望你在工作、学习或休息时，桌面上能有一只会走动、会撒娇、也会回应你的小猫。Dolikepet 把日常陪伴、互动小游戏和文件投喂放在一起，让整理不再需要的文件，也成为照顾猫咪的一部分。
 
-当前版本：**0.3.0「色孽的赐福」· Windows 64 位**
+当前版本：**0.3.1「色孽的赐福」· Windows 64 位**
 
-[下载游玩版](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.3.0) · [源码与构建](docs/BUILD.md) · [查看版本记录](https://github.com/Dolike-moca/Dolikepet/releases) · [反馈问题与建议](https://github.com/Dolike-moca/Dolikepet/issues)
+[下载游玩版](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.3.1) · [源码与构建](docs/BUILD.md) · [查看版本记录](https://github.com/Dolike-moca/Dolikepet/releases) · [反馈问题与建议](https://github.com/Dolike-moca/Dolikepet/issues)
 
 **自有代码采用 MIT 开源，项目美术素材采用 CC BY 4.0 开放并保留署名。** 可以查看和修改桌宠交互、小游戏、文件投喂与桌面窗口的实现。第三方素材与组件保留原作者及原许可，详见文末说明。
+
+## 0.3.1 修复更新
+
+- **修复设置改大小后坩埚显示不完整。** 锅的画面不再冻结在旧尺寸，放大后右把手和底脚能完整显示，无需重开饭盆。
+- **保存设置与切换置顶更稳定。** 仅修改大小或重复保存不会干扰锅的透明显示；真正切换置顶时，保持现有窗口与动作，隐藏的饭盆和计分窗不会被误打开。
+- **保留已确认的外观与动作。** 覆盖七个尺寸档位、反复保存和隐藏后重开；蘑菇进食、缩放节奏和现有小游戏效果保持一致。
+
+[完整更新说明](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.3.1)
 
 ## 0.3.0「色孽的赐福」
 
@@ -37,7 +45,7 @@
 
 ## 开始陪伴
 
-1. 在 [0.3.0 发布页](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.3.0) 的 **Assets** 中下载 `Dolikepet-0.3.0-windows-x64.zip`。
+1. 在 [0.3.1 发布页](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.3.1) 的 **Assets** 中下载 `Dolikepet-0.3.1-windows-x64.zip`。
 2. 完整解压，打开 `Dolikepet` 文件夹，双击 **`DolikePet.exe`**。
 3. 右键猫咪，或右键系统托盘里的猫咪图标，打开设置和饭盆。
 
@@ -130,7 +138,7 @@
 
 ## 源码与参与开发
 
-本仓库公开了 **0.3.0 的程序源码、当前运行素材、模型导出、构建工具和回归测试**。希望你能从中了解猫咪如何与桌面互动，也欢迎一起把它做得更有陪伴感。
+本仓库公开了 **0.3.1 的程序源码、当前运行素材、模型导出、构建工具和回归测试**。希望你能从中了解猫咪如何与桌面互动，也欢迎一起把它做得更有陪伴感。
 
 - [从源码构建](docs/BUILD.md)：Windows 环境、固定版本依赖、编译与测试步骤。
 - [参与贡献](CONTRIBUTING.md)：改动范围、素材规则和验证要求。
