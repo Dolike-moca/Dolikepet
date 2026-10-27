@@ -106,5 +106,11 @@ edit("src/gd_cubism_user_model.cpp",
      'ClassDB::bind_method(D_METHOD("release_desktop_capture", "handle"), &GDCubismUserModel::release_desktop_capture);',
      'ClassDB::bind_method(D_METHOD("release_desktop_capture", "handle"), &GDCubismUserModel::release_desktop_capture);\n'
      '    ClassDB::bind_method(D_METHOD("desktop_capture_matches", "handle"), &GDCubismUserModel::desktop_capture_matches);')
+edit("src/gd_cubism_user_model.hpp", "bool desktop_capture_matches(int64_t handle) const;",
+     "bool desktop_capture_matches(int64_t handle) const;\n    bool restore_desktop_visibility(int64_t handle);")
+edit("src/gd_cubism_user_model.cpp",
+     'ClassDB::bind_method(D_METHOD("desktop_capture_matches", "handle"), &GDCubismUserModel::desktop_capture_matches);',
+     'ClassDB::bind_method(D_METHOD("desktop_capture_matches", "handle"), &GDCubismUserModel::desktop_capture_matches);\n'
+     '    ClassDB::bind_method(D_METHOD("restore_desktop_visibility", "handle"), &GDCubismUserModel::restore_desktop_visibility);')
 (root / "src/private/pet_pointer_bridge.cpp").write_bytes(bridge.read_bytes())
 print("Applied Native compatibility, CPU vertex and desktop pointer patches.")

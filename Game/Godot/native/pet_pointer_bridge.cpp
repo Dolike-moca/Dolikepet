@@ -51,6 +51,23 @@ bool GDCubismUserModel::desktop_primary_pressed() const {
 #endif
 }
 
+bool GDCubismUserModel::restore_desktop_visibility(int64_t handle) {
+#if defined(_WIN32)
+    const HWND window = reinterpret_cast<HWND>(static_cast<intptr_t>(handle));
+    DWORD owner = 0;
+    GetWindowThreadProcessId(window, &owner);
+    if (!IsWindow(window) || owner != GetCurrentProcessId()) return false;
+    // Godot's style rebuild can drop WS_VISIBLE on an unfocusable subwindow,
+    // leaving its old DWM frame frozen while Window.visible is still true.
+    // Only call for a logically visible widget after an actual flag change.
+    // Restore that same HWND without activating it or recreating its surface.
+    if (!IsWindowVisible(window)) ShowWindow(window, SW_SHOWNA);
+    return IsWindowVisible(window) != FALSE;
+#else
+    return false;
+#endif
+}
+
 bool GDCubismUserModel::desktop_capture_matches(int64_t handle) const {
 #if defined(_WIN32)
     const HWND window = reinterpret_cast<HWND>(static_cast<intptr_t>(handle));

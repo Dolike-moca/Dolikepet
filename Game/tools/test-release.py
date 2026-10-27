@@ -8,7 +8,7 @@ LOGIC=['test_parity','test_blink','test_meal','test_satiety','test_bowl_shout','
 RENDER=['test_bowl','test_shared_arm_rig','test_feeding_hold_rig','test_food_scarf_depth','test_braid_depth','test_expression_masks','test_bite_handoff','test_bowl_drop','test_bowl_edge_host','test_bowl_host','test_bowl_e2e','test_menu_idle','test_settings_menu','test_bowl_hit_host','test_desktop_shell','test_bowl_startup','test_bowl_summon_host','test_catch_host','test_catch_score_lifecycle','test_score_board','test_juggle_host','test_juggle_render','test_pet_hit_area','test_physics_host','test_rehit_render','test_drag_release']
 RENDER += ['test_dizzy_grab']
 LOGIC += ['test_size_change']
-RENDER += ['test_size_change_host','test_mushroom_hold']
+RENDER += ['test_size_change_host','test_mushroom_hold','test_bowl_resize']
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--group',choices=['logic','render','native','all'],default='all');p.add_argument('--tests',nargs='*');args=p.parse_args()

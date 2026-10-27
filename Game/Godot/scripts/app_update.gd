@@ -2,7 +2,7 @@ extends Node
 ## Downloads only: never installs, executes, extracts or touches player files.
 signal changed
 signal notice_requested(id: String, text: String)
-const VERSION := "0.3.0"
+const VERSION := "0.3.1"
 const RELEASE_NAME := "色孽的赐福"
 const REPOSITORY := "https://github.com/Dolike-moca/Dolikepet"
 const FEED_URL := "https://raw.githubusercontent.com/Dolike-moca/Dolikepet/main/updates/latest.json"

@@ -665,9 +665,7 @@ func _menu_action(id: int) -> void:
 		10:
 			gaze_enabled = not gaze_enabled
 		11:
-			get_window().always_on_top = not get_window().always_on_top
-			bowl_window.always_on_top = get_window().always_on_top
-			catch_score.always_on_top = get_window().always_on_top
+			_apply_topmost(not get_window().always_on_top)
 		12:
 			idle_sitting.manual_pose()
 			manual_sit_pending = falling.active()
@@ -899,12 +897,25 @@ func _register_interaction(wake: bool = true) -> void:
 	if idle_sitting.interact(wake and not landing.active()) and pet.available:
 		pet.set_seated(false)
 
+func _apply_topmost(value: bool) -> void:
+	for window in [get_window(), bowl_window, catch_score]:
+		# Even an unchanged Godot flag rebuilds the native window style. Saving
+		# only a size/gaze change must leave the cauldron's visible surface alone.
+		if window.always_on_top == value: continue
+		window.always_on_top = value
+		# A real toggle can drop WS_VISIBLE from an unfocusable Win32 widget.
+		# Restore only an already-visible window, preserving its handle, alpha,
+		# physics and focus. Hidden bowls/score panels must remain hidden.
+		if OS.get_name() == "Windows" and window.visible and is_instance_valid(pet.model) \
+			and pet.model.has_method("restore_desktop_visibility"):
+			var id: int = window.get_window_id()
+			if id != DisplayServer.INVALID_WINDOW_ID:
+				pet.model.restore_desktop_visibility(DisplayServer.window_get_native_handle(DisplayServer.WINDOW_HANDLE,id))
+
 func _apply_common_settings(pixels: int, gaze: bool, topmost: bool) -> void:
 	_request_size(pixels)
 	gaze_enabled = gaze
-	get_window().always_on_top = topmost
-	bowl_window.always_on_top = topmost
-	catch_score.always_on_top = topmost
+	_apply_topmost(topmost)
 	_save_settings()
 
 func _apply_auto_sit_settings(enabled: bool, minimum: float, maximum: float, roaming_mode: String = "", auto_fall_enabled: Variant = null) -> void:
