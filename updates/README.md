@@ -1,12 +1,12 @@
 # Dolikepet 发布与更新接口
 
-当前版本为 **0.3.1 · 色孽的赐福**，Windows x64。本次修复从设置更改体型后坩埚画面冻结、裁切及置顶切换影响透明显示的问题，保留原有素材和动作。公开仓库 https://github.com/Dolike-moca/Dolikepet 包含公开源码、运行素材、游玩说明与更新信息；自有代码 MIT，项目美术 CC BY 4.0，第三方例外保留原许可。
+当前版本为 **0.4.0 · 奸奇的赐福**，Windows x64。本次加入 AI 聊天、分层记忆、主动陪伴与猫猫作息，并优化设置、语速、聊天收起和大文件进食。源码工程、工程运行版与精简游玩版使用相同功能与更新服务。公开仓库 https://github.com/Dolike-moca/Dolikepet 包含公开源码、运行素材、游玩说明与更新信息；自有代码 MIT，项目美术 CC BY 4.0，第三方例外保留原许可。
 
 ## 0.2.1 及后续版本
 
 源码工程、工程运行版和精简游玩版使用相同服务，启动约 5 秒后自动、异步读取 https://raw.githubusercontent.com/Dolike-moca/Dolikepet/main/updates/latest.json 。版本为三段数字，如 `0.2.1`；界面另显示版本名称。
 
-接口字段：`schema: 1`、`channel: "stable"`、`platform: "windows-x86_64"`、`version`、`release_url`、`download_url`、`size_bytes`、`sha256`。只接受指定仓库中与版本一致的发布页、下载路径、有效 SHA-256 和正整数大小。版本按三段数字比较，不提示降级。`beta0.3.1` 与 `0.3.1` 在版本比较时视为同一版本，避免兼容入口形成重复升级。
+接口字段：`schema: 1`、`channel: "stable"`、`platform: "windows-x86_64"`、`version`、`release_url`、`download_url`、`size_bytes`、`sha256`。只接受指定仓库中与版本一致的发布页、下载路径、有效 SHA-256 和正整数大小。版本按三段数字比较，不提示降级。`beta0.4.0` 与 `0.4.0` 在版本比较时视为同一版本，避免兼容入口形成重复升级。
 
 检查成功后每 6 小时再次检查。元数据请求超时 20 秒、响应上限 64 KiB；失败从 60 秒起退避重试，最长 15 分钟。发现新版本先排队显示文字提示，再使用线程 HTTP 请求将 ZIP 写入独立缓存；包大小上限 2 GiB，整个请求最长 30 分钟，60 秒无数据进展会取消并等待重试。
 
@@ -18,9 +18,9 @@
 
 ## beta0.1.0 兼容入口
 
-旧客户端仅接受 `beta主.次.修订` 格式，并严格校验旧仓库地址和匹配的标签、ZIP 名称。为保持它的「检查更新」可用，继续维护原 `updates/beta.json`，字段为 `channel: "beta"`、`version: "beta0.3.1"`，链接保留旧地址 `https://github.com/DavidGump-070660/Dolikepet`（GitHub 重定向至当前公开仓库）。
+旧客户端仅接受 `beta主.次.修订` 格式，并严格校验旧仓库地址和匹配的标签、ZIP 名称。为保持它的「检查更新」可用，继续维护原 `updates/beta.json`，字段为 `channel: "beta"`、`version: "beta0.4.0"`，链接保留旧地址 `https://github.com/DavidGump-070660/Dolikepet`（GitHub 重定向至当前公开仓库）。
 
-`beta0.3.1` 是同一 0.3.1 程序的旧版兼容发布入口，不是另一套构建。其 ZIP 与主发布页的 ZIP 字节完全相同，只有下载文件名不同；兼容页明确链接主发布页及完整更新说明。主发布页、程序内版本和 README 均使用 **0.3.1 · 色孽的赐福**。
+`beta0.4.0` 是同一 0.4.0 程序的旧版兼容发布入口，不是另一套构建。其 ZIP 与主发布页的 ZIP 字节完全相同，只有下载文件名不同；兼容页明确链接主发布页及完整更新说明。主发布页、程序内版本和 README 均使用 **0.4.0 · 奸奇的赐福**。
 
 ## 发布顺序
 
