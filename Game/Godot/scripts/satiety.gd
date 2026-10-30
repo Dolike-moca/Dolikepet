@@ -13,22 +13,26 @@ static func sanitize_hours(value: Variant) -> float:
 	if not (value is int or value is float) or not is_finite(float(value)): return DEFAULT_HOURS
 	return clampf(float(value),0.01,8760.0)
 
-func observe(bytes: int, next_bytes: int = -1, consider_next: bool = false) -> bool:
+static func fits(bytes: int, occupied: int, limit: int, allow_oversized: bool = false) -> bool:
+	if bytes < 0 or occupied >= limit: return false
+	return bytes <= limit-occupied or (allow_oversized and bytes>limit and occupied*2<limit)
+
+func observe(bytes: int, next_bytes: int = -1, consider_next: bool = false, allow_oversized: bool = false) -> bool:
 	used = maxi(0,bytes)
 	var before := resting
 	if resting:
 		# Strictly below half. A blocked oversized head item must not cause a
 		# full/hungry loop (and repeat the satisfied speech every scan).
-		if used*2<capacity and (next_bytes<0 or next_bytes<=capacity-used):
+		if used<capacity and used*2<capacity and (next_bytes<0 or fits(next_bytes,used,capacity,allow_oversized)):
 			resting = false; full_pending = false; reminder_wait = 3.0
 	else:
-		var no_room := consider_next and used>0 and next_bytes>=0 and next_bytes<=capacity and next_bytes>capacity-used
+		var no_room := consider_next and used>0 and next_bytes>=0 and (next_bytes<=capacity or allow_oversized) and not fits(next_bytes,used,capacity,allow_oversized)
 		if used>=capacity or no_room:
 			resting = true; full_pending = true
 	return before!=resting
 
-func can_take(bytes: int) -> bool:
-	return not resting and bytes>=0 and bytes<=capacity-used
+func can_take(bytes: int, allow_oversized: bool = false) -> bool:
+	return not resting and fits(bytes,used,capacity,allow_oversized)
 
 func request_bowl(dt: float, visible: bool, blocked: bool) -> String:
 	if resting or blocked: return ""

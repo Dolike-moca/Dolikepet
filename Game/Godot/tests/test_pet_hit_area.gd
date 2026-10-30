@@ -33,6 +33,15 @@ func opaque_point() -> Vector2:
 		for x in range(image.get_width()/3,image.get_width()*2/3,3):
 			if image.get_pixel(x,y).a>0.99: return Vector2(x,y)
 	return Vector2(-1,-1)
+func reveal_speech() -> void:
+	# The host process is paused in this fixture. Advance the real typewriter
+	# before testing overlap, so a not-yet-visible multiline label is not just
+	# one empty line above the head at the largest pet size.
+	for _step in 1000:
+		if app.bubble_reveal.done(): break
+		app._advance_bubble_text(0.1)
+	check(app.bubble.visible and app.bubble_label.visible_characters==app.bubble_label.text.length(),
+		"speech fixture did not reveal its complete text")
 func run() -> void:
 	out = ProjectSettings.globalize_path("res://../../_work/tests/pet-hit-area")
 	var source := ProjectSettings.globalize_path("res://tests/PointerProbe.cs")
@@ -119,6 +128,7 @@ func run() -> void:
 		await draw(base,extent,false)
 		var clean: Image = app.hit_area.image
 		app._say("喵～\n气泡区域不拖动猫咪\n但被遮住的猫咪仍然可以拖动",20.0)
+		reveal_speech()
 		await process_frame; await RenderingServer.frame_post_draw
 		app._capture_hit_area()
 		var rect: Rect2 = app.bubble.get_global_rect()
@@ -150,6 +160,7 @@ func run() -> void:
 		check(app.dragging and not app.drag_moved,"stationary press did not arm click/drag")
 		click.pressed = false; app._input(click)
 		check(app.bubble.visible and app.bubble_label.text=="喵～","tap did not show the real greeting")
+		reveal_speech()
 		await process_frame; await RenderingServer.frame_post_draw
 		app._capture_hit_area()
 		click.pressed = true; app._input(click)
@@ -160,6 +171,7 @@ func run() -> void:
 		check(not app.dragging and not app.falling.body.held,"second grab remained attached")
 		# The UI-free mask must follow poses while speech remains on screen.
 		app._say("喵～\n动作变化时也能抓住猫咪",20.0)
+		reveal_speech()
 		var changed := base.duplicate(); changed.facingScale = -1.0; changed.headZ = 12.0
 		await draw(changed,extent,false)
 		var speaking: Image = app.hit_area.image

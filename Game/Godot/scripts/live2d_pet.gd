@@ -18,6 +18,7 @@ const HungryFace = preload("res://scripts/hungry_face.gd")
 const BiteFace = preload("res://scripts/bite_face.gd")
 const Masks = preload("res://scripts/live2d_masks.gd")
 const BowlReach = preload("res://scripts/bowl_reach_pose.gd")
+const SleepPose = preload("res://scripts/sleep_pose.gd")
 var model: Node2D
 var params: Dictionary = {}
 var mapping: Dictionary = {}
@@ -40,6 +41,7 @@ var hungry_face = HungryFace.new()
 var bite_face = BiteFace.new()
 var clipping_masks = Masks.new()
 var bowl_reach = BowlReach.new()
+var sleep_pose = SleepPose.new()
 var secondary_pose: Dictionary = {}
 var facing_scale := 1.0
 var fitted_size := Vector2(420, 420)
@@ -119,6 +121,7 @@ func load_pet(config: Dictionary) -> bool:
 	hungry_face.setup(model, meshes)
 	bite_face.setup(model, meshes)
 	bowl_reach.setup(model, meshes)
+	sleep_pose.setup(self, meshes)
 	chewing_pose.bite_origin = BiteFace.ANCHOR + bite_face.closed_center
 	clipping_masks.setup(model, meshes)
 	tail.setup(deformation.reference[Tail.MESH_ID])
@@ -180,6 +183,13 @@ func apply_pose(pose: Dictionary, dt: float) -> void:
 	pose = landing_pose.prepare(pose)
 	pose = chewing_pose.prepare(pose)
 	pose = hungry_face.prepare(pose)
+	pose = SleepPose.prepare(pose)
+	# Text speech owns only the jaw. Apply it after expression preparation so
+	# closed smiles and dizzy/held faces cannot pin the speaking mouth shut.
+	# Calling already has its accepted syllable animation and keeps that timing.
+	var speech_weight := 0.0 if pose.get("bowlCalling", false) else clampf(float(pose.get("speechWeight", 0.0)), 0.0, 1.0)
+	if speech_weight > 0.0:
+		pose.mouth = lerpf(float(pose.mouth), clampf(float(pose.get("speechMouth", 0.0)), 0.0, 1.0), speech_weight)
 	for key in mapping:
 		params[mapping[key]].set("value", pose[key])
 	facing_scale = pose.get("facingScale", 1.0)
@@ -236,6 +246,7 @@ func apply_pose(pose: Dictionary, dt: float) -> void:
 	tail.update(dt, pose.get("walkPhase", 0.0), pose.get("walkWeight", 0.0), sitting.amount,
 		pose.get("dragHeld", false), pose.get("fallPaused", false),pose.get("juggleWeight",0.0),pose.get("juggleTail",0.0))
 	tail.apply(meshes[Tail.MESH_ID], raw[Tail.MESH_ID], body)
+	SleepPose.apply_tail(tail,meshes[Tail.MESH_ID],raw[Tail.MESH_ID],body,pose)
 	walking.apply(model, meshes, raw, body,
 		pose.get("walkPhase", 0.0), pose.get("walkWeight", 0.0), sitting.amount)
 	pickup_pose.apply_arms(meshes, body, pose)
@@ -252,7 +263,25 @@ func apply_pose(pose: Dictionary, dt: float) -> void:
 	landing_pose.apply_upper(meshes, body, pose, faces)
 	pickup_pose.apply_props(body, pose, landing_pose.upper_transform(body,pose))
 	bowl_reach.apply(meshes,head,pickup_pose.hold_rig,pose.get("bowlReach",0.0),pose.get("bowlHitActive",false))
+	_apply_speech_mouth_visibility(speech_weight)
+	sleep_pose.apply_upper(meshes,body,head,pose,faces,pickup_pose.hold_rig)
+	var sleep_head := deformation._affine("ArtMesh18",Secondary.read_points(meshes.ArtMesh18)) if SleepPose.weight(pose)>0.0 else head
+	sleep_pose.update_decoration(self,model,sleep_head,pose,pixel_scale)
 	# advance() sizes clipping viewports before runtime mesh deformation. Refit
 	# once all layers have moved, including landing recoil and swallowing bends.
 	clipping_masks.refresh()
 	sitting.update_composite_coordinates()
+
+func _apply_speech_mouth_visibility(weight: float) -> void:
+	if weight <= 0.0: return
+	# Every face pass has now assigned its normal mouth opacity, including the
+	# last shouting-mouth pass. Crossfade only mouths; eye and body poses keep
+	# their owners. Both the original meshes and overlays have already followed
+	# the complete head/upper-body transforms, so this cannot detach the jaw.
+	for id in ["ArtMesh3", "ArtMesh4"]:
+		meshes[id].self_modulate.a = lerpf(meshes[id].self_modulate.a, 1.0, weight)
+	for mouth in [drag_pose.sprites[2], landing_pose.sprites[2], falling_pose.sprite,
+		chewing_pose.sprite, chewing_pose.swallow_sprite, hungry_face.mouth,
+		bite_face.mouth, bowl_reach.shout]:
+		mouth.modulate.a *= 1.0 - weight
+		mouth.visible = mouth.visible and mouth.modulate.a > 0.00001

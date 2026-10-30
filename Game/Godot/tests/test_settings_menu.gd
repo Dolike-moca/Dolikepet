@@ -29,15 +29,25 @@ func run() -> void:
 	verify(not app.settings_window.transient and not app.settings_window.exclusive,"settings must be independent/nonmodal")
 	var settings = app.settings_window
 	verify(settings.size == Vector2i(680,540),"compact window size")
-	verify(settings.pages.size()==4 and settings.navigation.size()==4,"four pages are present")
+	verify(settings.pages.size()==5 and settings.navigation.size()==5,"five pages including AI are present")
+	verify(settings.navigation[3].text=="AI" and settings.navigation[4].text=="关于","AI has a dedicated compact page")
 	var original_size: int = root.size.x
 	var original_gaze: bool = app.gaze_enabled
 	var original_topmost: bool = root.always_on_top
-	settings.size_buttons[4].pressed.emit()
+	settings.size_slider.value = 4
 	settings.gaze.button_pressed = not original_gaze
 	settings.topmost.button_pressed = not original_topmost
 	verify(root.size.x==original_size and app.gaze_enabled==original_gaze and root.always_on_top==original_topmost,"common draft must not apply before save")
-	verify(settings.size_buttons.size()==7 and settings.size_buttons[4].button_pressed and settings.size_buttons[4].text=="150%","seven size presets use 300 baseline")
+	verify(settings.size_slider.min_value==0 and settings.size_slider.max_value==6 and settings.size_slider.step==1 and settings.size_slider.tick_count==7 and settings.size_value.text=="150%","seven slider stops use 300 baseline and show selected percentage")
+	for index in 7:
+		settings.size_slider.value = index
+		verify(settings.size_pixels==[150,225,300,375,450,525,600][index] and settings.size_value.text=="%d%%" % [50,75,100,125,150,175,200][index],"slider maps each stop to its existing size: "+str(index))
+		verify(root.size.x==original_size and not app.size_change.pending(),"scrubbing size remains an unsaved draft")
+	settings.size_slider.value = 100
+	verify(settings.size_pixels==600,"slider clamps to maximum size")
+	settings.size_slider.value = -100
+	verify(settings.size_pixels==150,"slider clamps to minimum size")
+	settings.size_slider.value = 4
 	settings.navigation[2].pressed.emit()
 	verify(settings.current_page==2 and settings.pages[2].visible and not settings.pages[0].visible,"navigation switches one page at a time")
 	app.settings_window.digestion_hours.value = 12.0
@@ -63,7 +73,7 @@ func run() -> void:
 	settings.maximum_minutes.value = 3
 	settings.minimum_seconds.value = 0
 	settings.maximum_seconds.value = 0
-	settings.size_buttons[4].pressed.emit()
+	settings.size_slider.value = 4
 	settings.gaze.button_pressed = false
 	settings.topmost.button_pressed = false
 	settings.bowl_capacity.get_line_edit().text = "0.25"
@@ -77,6 +87,10 @@ func run() -> void:
 	settings._save()
 	await process_frame
 	verify(app.size_change.target==450 and app.size_change.pending(),"common save queues growth animation")
+	app._menu_action(14)
+	await process_frame
+	verify(settings.size_slider.value==4 and settings.size_value.text=="150%","opening settings during growth loads the pending target instead of the intermediate body size")
+	settings.cancel_button.pressed.emit()
 	await complete_size(app)
 	verify(root.size.x==450 and not app.gaze_enabled and not root.always_on_top and not app.bowl_window.always_on_top and not app.catch_score.always_on_top,"common save updates existing runtime controls")
 	verify(app.bowl_capacity==268435456 and app.satiety.capacity==536870912 and app.satiety.digestion_hours==12.5 and app.satiety.auto_open,"typed numbers saved without changing focus, including sub-GB capacity")
@@ -86,7 +100,7 @@ func run() -> void:
 	app._menu_action(14)
 	await process_frame
 	settings.size_reset.pressed.emit()
-	verify(settings.size_pixels==300 and settings.size_buttons[2].button_pressed and root.size.x==450,"reset is a draft until saved")
+	verify(settings.size_pixels==300 and settings.size_slider.value==2 and settings.size_value.text=="100%" and root.size.x==450,"reset is a draft until saved")
 	settings._save()
 	await process_frame
 	await complete_size(app)
@@ -108,7 +122,13 @@ func run() -> void:
 		await process_frame; await process_frame; await RenderingServer.frame_post_draw
 		settings.get_texture().get_image().save_png(app.settings_path.get_base_dir().path_join("page-%d.png" % index))
 		verify(settings.pages[index].get_h_scroll_bar().max_value<=settings.pages[index].size.x+1,"no horizontal page overflow")
-		verify(settings.pages[index].get_v_scroll_bar().max_value<=settings.pages[index].size.y+1,"collapsed page fits without scrolling: "+str(index))
+		if index != 1:
+			verify(settings.pages[index].get_v_scroll_bar().max_value<=settings.pages[index].size.y+1,"collapsed page fits without scrolling: "+str(index))
+		else:
+			verify(settings.pages[index].get_v_scroll_bar().visible,"activity page scrolls to its added sleep schedule")
+		verify(settings.save_button.is_visible_in_tree() and settings.cancel_button.is_visible_in_tree()
+			and Rect2(Vector2.ZERO,Vector2(settings.size)).encloses(settings.save_button.get_global_rect())
+			and Rect2(Vector2.ZERO,Vector2(settings.size)).encloses(settings.cancel_button.get_global_rect()),"save and cancel remain fixed outside scrolling pages")
 	settings.navigation[2].pressed.emit()
 	settings.details[2].button_pressed = true
 	await process_frame; await process_frame; await RenderingServer.frame_post_draw

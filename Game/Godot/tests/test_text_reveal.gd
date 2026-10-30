@@ -1,0 +1,45 @@
+extends SceneTree
+const Reveal = preload("res://scripts/text_reveal.gd")
+const Speed = preload("res://scripts/speech_speed.gd")
+var failures: Array[String] = []
+var checks := 0
+func check(ok: bool, message: String) -> void:
+	checks += 1
+	if not ok: failures.append(message)
+func _initialize() -> void:
+	var reveal = Reveal.new()
+	reveal.replace("大人，猫猫在这里喵。")
+	check(reveal.visible_text().is_empty() and not reveal.done(), "new utterance starts before its first character")
+	check(reveal.advance(0.25, 8.0) == "大人", "Chinese characters advance by elapsed time")
+	reveal.set_text("大人，猫猫在这里喵。还要一起玩吗？")
+	check(reveal.visible_text() == "大人", "appending a stream chunk preserves reveal progress")
+	check(reveal.advance(0.25, 8.0) == "大人，猫", "new chunks continue instead of restarting")
+	reveal.replace("  大人，猫猫在这里喵。  \n")
+	reveal.seek(5); reveal.set_text("大人，猫猫在这里喵。")
+	check(reveal.visible_text() == "大人，", "completion trimming leading/trailing whitespace preserves revealed content")
+	reveal.set_text("大人，猫猫在这里喵。  \n"); reveal.advance(0.25, 8.0)
+	var trimmed_count := reveal.visible_text().length()
+	reveal.set_text("大人，猫猫在这里喵。")
+	check(reveal.visible_text().length() == trimmed_count, "trimming only a trailing stream newline does not replay letters")
+	var before := reveal.visible_text()
+	reveal.advance(-1.0, 8.0); reveal.advance(NAN, 8.0); reveal.advance(0.25, INF)
+	check(reveal.visible_text() == before, "invalid or negative timing cannot advance")
+	reveal.set_text("另一句话")
+	check(reveal.visible_text().is_empty(), "replacing a non-prefix response resets unrelated text")
+	reveal.finish()
+	check(reveal.done() and reveal.visible_text() == "另一句话", "history can be shown directly without replay")
+	reveal.advance(1000.0, 18.0); reveal.set_text("另一句话继续")
+	check(reveal.visible_text() == "另一句话", "idle time cannot accumulate into an instant future chunk")
+	reveal.clear()
+	check(reveal.done() and reveal.full_text.is_empty() and reveal.visible_text().is_empty(), "clear drops all reveal state")
+	var counts: Array[int] = []
+	for level in 5:
+		reveal.replace("喵".repeat(500))
+		for step in 4: reveal.advance(0.25, Speed.chars_per_second(level))
+		counts.append(reveal.visible_text().length())
+	check(counts[0] < counts[1] and counts[1] < counts[2] and counts[2] < counts[3] and counts[3] < counts[4], "all five speed levels produce distinct monotonic reveal rates")
+	reveal.replace("喵".repeat(10000))
+	check(reveal.full_text.length() == Reveal.MAX_CHARACTERS, "wire-sized input remains bounded for presentation")
+	for failure in failures: printerr("TEXT REVEAL: " + failure)
+	print("Text reveal: ", checks, " checks; ", failures.size(), " failures")
+	quit(0 if failures.is_empty() else 1)

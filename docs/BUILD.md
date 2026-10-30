@@ -1,6 +1,8 @@
-# 从源码构建 Dolikepet 0.3.0
+# 从源码构建 Dolikepet 0.4.0
 
-源码对应 **0.3.0「纳垢的赐福」**。这是可开发的 Godot 工程；只想游玩，请直接下载 [Windows 游玩包](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.3.0)。
+源码对应 **0.4.0「奸奇的赐福」**。这是可开发的 Godot 工程；只想游玩，请直接下载 [Windows 游玩包](https://github.com/Dolike-moca/Dolikepet/releases/tag/0.4.0)。
+
+本版包含 DeepSeek / OpenAI API 与 ChatGPT 登录接入、气泡聊天、人设与分层记忆、主动问候、语速设置，以及坐姿睡眠和作息。AI 连接由玩家自行配置，源码不附带密钥、登录账户或玩家聊天数据；未配置 AI 仍可使用桌宠、小游戏与睡眠功能。连接和数据范围见 [AI 陪伴说明](../Game/docs/AI_COMPANION.md)。
 
 ## 准备环境
 

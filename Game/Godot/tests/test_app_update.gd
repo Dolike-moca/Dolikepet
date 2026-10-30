@@ -13,9 +13,9 @@ func manifest(version := Update.VERSION) -> Dictionary:
 		"size_bytes":123, "sha256":"a".repeat(64)}
 func run() -> void:
 	verify(ProjectSettings.get_setting("application/config/version") == Update.VERSION, "project version must match feed client")
-	verify(Update.VERSION=="0.3.1" and Update.RELEASE_NAME=="色孽的赐福", "release version and name")
-	verify(Update.newer("0.3.1","0.3.0"), "patch release is newer than the previous public build")
-	verify(not Update.newer("beta0.3.1","0.3.1"), "patch compatibility entry does not trigger another upgrade")
+	verify(Update.VERSION=="0.4.0" and Update.RELEASE_NAME=="奸奇的赐福", "release version and name")
+	verify(Update.newer(Update.VERSION,"0.3.1"), "release is newer than the previous public build")
+	verify(not Update.newer("beta"+Update.VERSION,Update.VERSION), "compatibility entry does not trigger another upgrade")
 	verify(Update.newer("0.2.0","beta0.1.0"), "upgrade from original beta numbering")
 	verify(not Update.newer("beta0.2.0","0.2.0"), "compatibility tag is not a newer build")
 	verify(Update.newer("0.3.0","0.2.0"), "next stable version compares correctly")

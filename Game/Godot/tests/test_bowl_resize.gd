@@ -63,7 +63,7 @@ func save_size(pixels: int, on_top: bool) -> void:
 	await process_frame
 	var settings = app.settings_window
 	check(settings.visible,"settings opens through the production menu")
-	settings.size_buttons[Sizes.PIXELS.find(pixels)].pressed.emit()
+	settings.size_slider.value = Sizes.PIXELS.find(pixels)
 	settings.topmost.set_pressed_no_signal(on_top)
 	settings.save_button.pressed.emit()
 	check(not settings.visible,"Save closes the independent settings window")

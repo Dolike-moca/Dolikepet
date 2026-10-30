@@ -5,9 +5,13 @@ signal settings_saved(auto_sit_enabled: bool, minimum_seconds: float, maximum_se
 signal common_settings_saved(pixels: int, gaze: bool, topmost: bool)
 signal bowl_settings_saved(capacity_bytes: int)
 signal stomach_settings_saved(capacity_bytes: int, hours: float, auto_open: bool)
+signal sleep_settings_saved(value: Dictionary)
 signal open_stomach
 signal open_bowl
+signal ai_chat_requested
+signal ai_memory_requested
 const SettingsTheme = preload("res://scripts/settings_theme.gd")
+const AISettingsPanel = preload("res://scripts/ai_settings_panel.gd")
 const Sizes = preload("res://scripts/pet_size.gd")
 const BowlCapacity = preload("res://scripts/bowl_capacity.gd")
 const IdleSitting = preload("res://scripts/idle_sitting.gd")
@@ -27,7 +31,8 @@ var current_page := 0
 var details: Array[Button] = []
 var sit_options := VBoxContainer.new()
 var size_pixels := Sizes.BASE
-var size_buttons: Array[Button] = []
+var size_slider := HSlider.new()
+var size_value := Label.new()
 var size_reset := Button.new()
 var gaze := CheckButton.new()
 var topmost := CheckButton.new()
@@ -44,6 +49,15 @@ var minimum_seconds := SpinBox.new()
 var maximum_minutes := SpinBox.new()
 var maximum_seconds := SpinBox.new()
 var delay_hint := Label.new()
+var sleep_enabled := CheckButton.new()
+var sleep_start_hour := SpinBox.new()
+var sleep_start_minute := SpinBox.new()
+var sleep_end_hour := SpinBox.new()
+var sleep_end_minute := SpinBox.new()
+var sleep_frequency := HSlider.new()
+var sleep_frequency_label := Label.new()
+var sleep_period_hint := Label.new()
+var sleep_detail: Button
 var save_button := Button.new()
 var cancel_button := Button.new()
 var bowl_capacity := SpinBox.new()
@@ -55,6 +69,8 @@ var digestion_hours := SpinBox.new()
 var auto_open_bowl := CheckButton.new()
 var stomach_usage := Label.new()
 var stomach_button := Button.new()
+var ai_service: Node
+var ai_panel := AISettingsPanel.new()
 
 func _init() -> void:
 	title = "桌宠设置"
@@ -92,7 +108,7 @@ func _ready() -> void:
 	nav_gap.custom_minimum_size.y = 22
 	nav.add_child(nav_gap)
 	var nav_group := ButtonGroup.new()
-	for caption in ["常用", "活动", "喂食", "关于"]:
+	for caption in ["常用", "活动", "喂食", "AI", "关于"]:
 		var button := Button.new()
 		button.text = caption
 		button.toggle_mode = true
@@ -118,25 +134,36 @@ func _ready() -> void:
 	main.add_child(stack)
 	var common := _page(stack, "常用", "调整猫咪在桌面上的样子。")
 	var size_controls := _row(common, "桌宠大小")
-	var choices := GridContainer.new()
-	choices.columns = 4
-	choices.add_theme_constant_override("h_separation", 5)
-	choices.add_theme_constant_override("v_separation", 5)
+	var choices := VBoxContainer.new()
+	choices.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	choices.add_theme_constant_override("separation", 5)
 	size_controls.add_child(choices)
-	var size_group := ButtonGroup.new()
-	for index in Sizes.PERCENTS.size():
-		var button := Button.new()
-		button.text = "%d%%" % Sizes.PERCENTS[index]
-		button.custom_minimum_size.x = 65
-		button.toggle_mode = true
-		button.button_group = size_group
-		button.pressed.connect(func(): _choose_size(Sizes.PIXELS[index]))
-		choices.add_child(button)
-		size_buttons.append(button)
+	var size_header := HBoxContainer.new()
+	choices.add_child(size_header)
+	size_value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_value.add_theme_color_override("font_color", SettingsTheme.ACCENT)
+	size_header.add_child(size_value)
 	size_reset.text = "重置"
 	size_reset.tooltip_text = "恢复为 100%，保存后生效"
-	choices.add_child(size_reset)
+	size_header.add_child(size_reset)
 	size_reset.pressed.connect(func(): _choose_size(Sizes.BASE))
+	size_slider.min_value = 0
+	size_slider.max_value = Sizes.PIXELS.size() - 1
+	size_slider.step = 1
+	size_slider.rounded = true
+	size_slider.tick_count = Sizes.PIXELS.size()
+	size_slider.ticks_on_borders = true
+	size_slider.scrollable = false
+	size_slider.custom_minimum_size = Vector2(180, 28)
+	size_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_slider.tooltip_text = "50%、75%、100%、125%、150%、175%、200%；保存后生效"
+	choices.add_child(size_slider)
+	size_slider.value_changed.connect(func(value: float): _choose_size(Sizes.PIXELS[clampi(roundi(value), 0, Sizes.PIXELS.size() - 1)]))
+	var size_range := HBoxContainer.new()
+	choices.add_child(size_range)
+	_label(size_range, "50%", 12, true).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label(size_range, "200%", 12, true)
+	_choose_size(Sizes.BASE)
 	_toggle(common, "视线跟随鼠标", gaze)
 	_toggle(common, "始终置顶", topmost)
 	_detail(common, "缩放与显示说明", "100% 对应当前默认大小（300）。滚轮放大和缩小一次只改变一档；等待及缩放期间的额外滚动不会累积，动画结束且停滚后，再次滚动才改变下一档。\n这里选择的比例在保存后生效。放大时在掌心召唤蘑菇、双手抱着、闭眼分五小口吃完，再闪光长大；缩小平滑过渡，忙碌时等待。\n置顶设置同时应用到猫咪、坩埚和计分窗口。")
@@ -165,6 +192,7 @@ func _ready() -> void:
 	_style_hint(delay_hint)
 	sit_options.add_child(delay_hint)
 	_detail(behavior, "活动规则", "每轮在等待范围内随机一次；互动后重新计时。最短和最长相同时按固定时长等待。\n走动前回到当前屏幕底部；点击、拖动、缩放或打开菜单会暂停走动。\n自动坐下后点击会起身，手动坐下则保持坐姿。\n松手保留惯性，碰到侧边或顶部会反弹。自动下落关闭后缓慢停住，可在空中再次抓取。")
+	_add_sleep_controls(behavior)
 	var feeding := _page(stack, "喂食", "饭盆装食物，胃袋慢慢消化。")
 	feeding.add_theme_constant_override("separation", 8)
 	var status_row := HBoxContainer.new()
@@ -203,7 +231,12 @@ func _ready() -> void:
 		folders.add_child(button)
 	bowl_button.pressed.connect(func(): open_bowl.emit())
 	stomach_button.pressed.connect(func(): open_stomach.emit())
-	_detail(feeding, "投喂与消化规则", "拖入的文件会移动到饭盆；按放入先后取食，吃完移入胃袋。\n吃饱后休息，饱食度低于 50% 且下一份能放下才恢复；锅靠近才取食。未开锅时会请求打开。\n汤量按文件总大小分段增加，小文件也有反馈；满锅后仍能放入文件。\n消化从移入胃袋开始按现实时间计算；到期永久删除，不进回收站。退出期间到期的文件下次启动处理，修改消化时间也影响胃袋内已有文件。")
+	_detail(feeding, "投喂与消化规则", "拖入的文件会移动到饭盆；按放入先后取食，吃完移入胃袋。\n吃饱后休息，饱食度低于 50% 且下一份能放下才恢复；锅靠近才取食。未开锅时会请求打开。\n若锅内每份文件都大于吃饱容量，饱食度低于 50% 时也能按顺序吃一份；吃后显示 100%，按文件实际大小计入胃袋并等待消化。\n汤量按文件总大小分段增加，小文件也有反馈；满锅后仍能放入文件。\n消化从移入胃袋开始按现实时间计算；到期永久删除，不进回收站。退出期间到期的文件下次启动处理，修改消化时间也影响胃袋内已有文件。")
+	var ai := _page(stack, "AI 陪伴", "连接 AI，和猫咪聊聊日常。")
+	ai.add_theme_constant_override("separation", 8)
+	ai.add_child(ai_panel)
+	ai_panel.chat_requested.connect(func(): ai_chat_requested.emit())
+	ai_panel.memory_requested.connect(func(): ai_memory_requested.emit())
 	var about := _page(stack, "关于", "一个更有陪伴感的实用小桌宠。")
 	_label(about, "Dolikepet  " + AppUpdate.VERSION, 20)
 	_label(about, AppUpdate.RELEASE_NAME, 14, true)
@@ -247,11 +280,17 @@ func _ready() -> void:
 	save_button.add_theme_stylebox_override("hover", SettingsTheme.box(Color("7956a8")))
 	close_requested.connect(hide)
 	cancel_button.pressed.connect(hide)
+	visibility_changed.connect(func():
+		if not visible: ai_panel.discard_secret_draft())
 	save_button.pressed.connect(_save)
 	automatic.toggled.connect(func(_value: bool): _update_controls())
+	sleep_enabled.toggled.connect(func(_value: bool): _update_sleep_controls())
+	sleep_frequency.value_changed.connect(func(_value: float): _update_sleep_controls())
+	for field in _sleep_fields():
+		field.value_changed.connect(func(_value: float): _update_sleep_controls())
 	for field in _fields():
 		field.value_changed.connect(func(_value: float): _update_controls())
-	for field in _fields() + [bowl_capacity, stomach_capacity, digestion_hours]:
+	for field in _fields() + _sleep_fields() + [bowl_capacity, stomach_capacity, digestion_hours]:
 		field.get_line_edit().text_changed.connect(func(_text: String): pending_fields[field] = true)
 	_select_page(0)
 
@@ -308,7 +347,7 @@ func _toggle(parent: VBoxContainer, caption: String, control: CheckButton) -> vo
 	control.tooltip_text = caption
 	_row(parent, caption).add_child(control)
 
-func _detail(parent: VBoxContainer, caption: String, text: String) -> void:
+func _detail(parent: VBoxContainer, caption: String, text: String, tracked: bool = true) -> Button:
 	var button := Button.new()
 	button.text = "▸  " + caption
 	button.toggle_mode = true
@@ -317,7 +356,7 @@ func _detail(parent: VBoxContainer, caption: String, text: String) -> void:
 	button.add_theme_font_size_override("font_size", 12)
 	button.add_theme_color_override("font_color", SettingsTheme.MUTED)
 	parent.add_child(button)
-	details.append(button)
+	if tracked: details.append(button)
 	var explanation := Label.new()
 	explanation.text = text
 	_style_hint(explanation)
@@ -326,6 +365,86 @@ func _detail(parent: VBoxContainer, caption: String, text: String) -> void:
 	button.toggled.connect(func(expanded: bool):
 		explanation.visible = expanded
 		button.text = ("▾  " if expanded else "▸  ") + caption)
+	return button
+
+func _add_sleep_controls(parent: VBoxContainer) -> void:
+	parent.add_child(HSeparator.new())
+	_label(parent, "猫猫作息", 17)
+	_toggle(parent, "自动睡觉", sleep_enabled)
+	var clock_row := _row(parent, "睡觉时间")
+	clock_row.add_theme_constant_override("separation", 4)
+	_add_sleep_clock(clock_row, sleep_start_hour, sleep_start_minute)
+	_label(clock_row, "—", 12, true)
+	_add_sleep_clock(clock_row, sleep_end_hour, sleep_end_minute)
+	_style_hint(sleep_period_hint)
+	parent.add_child(sleep_period_hint)
+	var frequency_row := _row(parent, "日常小睡频率")
+	sleep_frequency.min_value = 0; sleep_frequency.max_value = 2
+	sleep_frequency.step = 1; sleep_frequency.rounded = true
+	sleep_frequency.tick_count = 3; sleep_frequency.ticks_on_borders = true
+	sleep_frequency.scrollable = false
+	sleep_frequency.custom_minimum_size = Vector2(130, 26)
+	sleep_frequency.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sleep_frequency.tooltip_text = "少 / 适中 / 多；仅调整睡觉时段以外的小睡概率"
+	frequency_row.add_child(sleep_frequency)
+	sleep_frequency_label.custom_minimum_size.x = 32
+	sleep_frequency_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	sleep_frequency_label.add_theme_color_override("font_color", SettingsTheme.ACCENT)
+	frequency_row.add_child(sleep_frequency_label)
+	sleep_detail = _detail(parent, "入睡与叫醒规则", "日常无互动 3 分钟后，每分钟按频率有 10% / 20% / 40% 概率小睡；随机睡 3～8 分钟后自然醒。\n睡觉时段内，无互动 30 秒后每 30 秒有 60% 概率入睡；没人叫醒就持续睡，时段结束后自然醒。开始与结束时间相同表示全天。\n点击、拖拽、缩放或主动聊天会叫醒，之后至少清醒 2 分钟；鼠标经过或在其他软件工作不会叫醒。\n聊天、设置、进食、小游戏和物理动作期间避让。睡着后暂停走动、取食和主动问候；自动坐下遵循睡眠状态，不会把熟睡的猫猫唤醒。", false)
+
+func _add_sleep_clock(parent: HBoxContainer, hours: SpinBox, minutes: SpinBox) -> void:
+	for field in [hours, minutes]:
+		field.min_value = 0; field.max_value = 23 if field == hours else 59
+		field.step = 1; field.custom_minimum_size.x = 50
+		field.select_all_on_focus = true
+		field.get_line_edit().alignment = HORIZONTAL_ALIGNMENT_CENTER
+		field.get_line_edit().add_theme_constant_override("minimum_character_width", 2)
+		field.get_line_edit().add_theme_stylebox_override("normal", SettingsTheme.box(Color("25232b"), 7, 5))
+		parent.add_child(field)
+		if field == hours: _label(parent, ":", 14, true)
+
+func _sleep_fields() -> Array[SpinBox]:
+	return [sleep_start_hour, sleep_start_minute, sleep_end_hour, sleep_end_minute]
+
+static func _sleep_number(value: Variant, fallback: int, maximum: int) -> int:
+	if not (value is int or value is float) or not is_finite(float(value)): return fallback
+	return clampi(int(value), 0, maximum)
+
+func _load_sleep_draft(value: Variant) -> void:
+	var saved: Dictionary = value if value is Dictionary else {}
+	var enabled_value: Variant = saved.get("enabled", true)
+	sleep_enabled.set_pressed_no_signal(enabled_value if enabled_value is bool else true)
+	var start := _sleep_number(saved.get("start_minute", 1380), 1380, 1439)
+	var end := _sleep_number(saved.get("end_minute", 480), 480, 1439)
+	sleep_start_hour.set_value_no_signal(start / 60)
+	sleep_start_minute.set_value_no_signal(start % 60)
+	sleep_end_hour.set_value_no_signal(end / 60)
+	sleep_end_minute.set_value_no_signal(end % 60)
+	sleep_frequency.set_value_no_signal(_sleep_number(saved.get("frequency", 1), 1, 2))
+	_update_sleep_controls()
+
+func _sleep_draft() -> Dictionary:
+	return {"enabled": sleep_enabled.button_pressed,
+		"start_minute": int(sleep_start_hour.value)*60 + int(sleep_start_minute.value),
+		"end_minute": int(sleep_end_hour.value)*60 + int(sleep_end_minute.value),
+		"frequency": int(sleep_frequency.value)}
+
+func _update_sleep_controls() -> void:
+	var draft := _sleep_draft()
+	sleep_frequency.editable = sleep_enabled.button_pressed
+	sleep_frequency.modulate.a = 1.0 if sleep_enabled.button_pressed else 0.5
+	sleep_frequency_label.text = ["少", "适中", "多"][clampi(int(sleep_frequency.value), 0, 2)]
+	for field in _sleep_fields():
+		field.editable = sleep_enabled.button_pressed
+		field.modulate.a = 1.0 if sleep_enabled.button_pressed else 0.5
+	sleep_period_hint.text = "按本机时间 · 全天睡眠时段" if draft.start_minute == draft.end_minute else ("按本机时间 · 跨午夜至次日" if draft.start_minute > draft.end_minute else "按本机时间 · 当日时段")
+	if not sleep_enabled.button_pressed: sleep_period_hint.text = "自动睡觉已关闭；仍可从右键菜单手动睡觉。"
+	_format_sleep_time.call_deferred()
+
+func _format_sleep_time() -> void:
+	for field in _sleep_fields():
+		if not field.get_line_edit().has_focus(): field.get_line_edit().text = "%02d" % int(field.value)
 
 func _capacity_row(parent: VBoxContainer, caption: String, field: SpinBox, unit: OptionButton) -> void:
 	var row := _row(parent, caption)
@@ -353,8 +472,9 @@ func _select_activity(index: int) -> void:
 
 func _choose_size(pixels: int) -> void:
 	size_pixels = Sizes.nearest(pixels)
-	for index in size_buttons.size():
-		size_buttons[index].set_pressed_no_signal(size_pixels == Sizes.PIXELS[index])
+	var index := Sizes.PIXELS.find(size_pixels)
+	size_slider.set_value_no_signal(index)
+	size_value.text = "%d%%" % Sizes.PERCENTS[index]
 
 func _fields() -> Array[SpinBox]:
 	return [minimum_minutes, minimum_seconds, maximum_minutes, maximum_seconds]
@@ -385,9 +505,11 @@ func show_settings(enabled: bool, minimum: float, maximum: float, roaming_mode: 
 		grab_focus()
 		return
 	pending_fields.clear()
+	ai_panel.load_draft(ai_service)
 	_choose_size(int(common.get("size", Sizes.BASE)))
 	gaze.set_pressed_no_signal(bool(common.get("gaze", true)))
 	topmost.set_pressed_no_signal(bool(common.get("topmost", true)))
+	_load_sleep_draft(common.get("sleep", {}))
 	stomach_unit.select(1 if stomach_bytes>=BowlCapacity.GB else 0)
 	stomach_capacity.max_value = 1024 if stomach_unit.selected==1 else 1048576
 	stomach_capacity.value = float(stomach_bytes)/(BowlCapacity.GB if stomach_unit.selected==1 else BowlCapacity.MB)
@@ -450,6 +572,11 @@ func _save() -> void:
 	_update_controls()
 	if save_button.disabled:
 		return
+	if ai_panel.commit_draft() != OK:
+		_select_page(3)
+		footer_hint.text = "AI 设置未保存，请检查提示"
+		footer_hint.add_theme_color_override("font_color", Color("ffb3ab"))
+		return
 	common_settings_saved.emit(size_pixels, gaze.button_pressed, topmost.button_pressed)
 	settings_saved.emit(automatic.button_pressed,
 		minimum_minutes.value * 60 + minimum_seconds.value,
@@ -457,6 +584,7 @@ func _save() -> void:
 		Roaming.MODES[activity_index], auto_fall.button_pressed)
 	bowl_settings_saved.emit(BowlCapacity.sanitize(roundi(bowl_capacity.value * (BowlCapacity.GB if bowl_unit.selected == 1 else BowlCapacity.MB))))
 	stomach_settings_saved.emit(BowlCapacity.sanitize(roundi(stomach_capacity.value*(BowlCapacity.GB if stomach_unit.selected==1 else BowlCapacity.MB))),digestion_hours.value,auto_open_bowl.button_pressed)
+	sleep_settings_saved.emit(_sleep_draft())
 	hide()
 
 func update_stomach_usage(used: int, capacity: int, resting: bool) -> void:

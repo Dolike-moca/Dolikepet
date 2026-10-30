@@ -4,10 +4,14 @@ signal changed
 signal message(text: String)
 const Food = preload("res://scripts/food_item.gd")
 const Paths = preload("res://scripts/project_paths.gd")
+const Satiety = preload("res://scripts/satiety.gd")
 var folder := ""
 var cache := ""
 var helper := ""
 var total_bytes := 0
+# Full-folder scan evidence, including files beyond the 128-item UI snapshot.
+# -1 means empty or uncertain; it must never authorize an oversized meal.
+var smallest_bytes := -1
 var stomach_folder := ""
 var stomach_bytes := 0
 var stomach_capacity := 1073741824
@@ -48,6 +52,7 @@ func start(root_override := "", cache_override := "") -> void:
 
 func import_files(paths: PackedStringArray) -> void:
 	if paths.is_empty(): return
+	smallest_bytes = -1
 	jobs.append({"action":"import","paths":Array(paths)})
 	message.emit("正在把文件放进饭盆喵～")
 
@@ -75,15 +80,17 @@ func food_items(excluded: Array = []) -> Array:
 	var result := []
 	if not storage_ready: return result
 	var room := maxi(0,stomach_capacity-stomach_bytes-reserved_bytes())
+	var allow_oversized := pending.is_empty() and excluded.is_empty() and all_food_oversized()
 	for entry in entries:
 		if entry.token in excluded and not pending.has(entry.token): room -= int(entry.get("bytes",0))
 	for entry in entries:
 		if result.size() >= 8: break
 		if pending.has(entry.token) or entry.token in excluded: continue
-		# A busy/unstable/oversized older file blocks later files too.
+		# Preserve FIFO even for the one-file oversized exception.
 		if not entry.get("ready",true) or not stable.has(entry.token) or failed.has(entry.token): break
 		var bytes := int(entry.get("bytes",0))
-		if bytes>room: break
+		var oversized := bytes>room and result.is_empty() and allow_oversized and Satiety.fits(bytes,stomach_bytes,stomach_capacity,true)
+		if bytes>room and not oversized: break
 		room -= bytes
 		if not textures.has(entry.token):
 			var image := Image.new()
@@ -93,7 +100,11 @@ func food_items(excluded: Array = []) -> Array:
 		var food = Food.from_texture(textures[entry.token],entry.label)
 		food.source = entry.duplicate()
 		result.append(food)
+		if oversized: break
 	return result
+
+func all_food_oversized() -> bool:
+	return storage_ready and not entries.is_empty() and smallest_bytes>stomach_capacity
 
 func _process(dt: float) -> void:
 	if helper.is_empty(): return
@@ -141,6 +152,7 @@ func _finish(result: Dictionary) -> void:
 		"scan":
 			storage_ready = true
 			stomach_bytes = int(result.get("stomach_bytes",0))
+			smallest_bytes = int(result.get("smallest_bytes",-1))
 			var previous := {}
 			for entry in entries: previous[entry.token] = true
 			entries = result.entries
@@ -158,11 +170,13 @@ func _finish(result: Dictionary) -> void:
 			total_bytes = int(result.bytes)
 			changed.emit()
 		"import":
+			smallest_bytes = -1
 			next_scan = 0.0
 			var count: int = result.accepted.size()
 			message.emit("收到 %d 份食物喵～"%count if result.errors.is_empty() else "已放入 %d 份，%s"%[count,str(result.errors[0])])
 		"swallow":
 			stomach_bytes = int(result.stomach_bytes)
+			smallest_bytes = -1
 			pending.erase(running.token)
 			entries = entries.filter(func(entry): return entry.token!=running.token)
 			stable.erase(running.token); textures.erase(running.token)

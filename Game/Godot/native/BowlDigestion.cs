@@ -114,6 +114,7 @@ partial class BowlFiles {
     static object ScanQueued() {
         var errors=new List<string>(); long gutBytes=ScanStomach(errors);
         var files=new List<string>(); Walk(root,files,errors);
+        bool sizesComplete=errors.Count==0; long smallestBytes=-1;
         string ledger=Path.Combine(root,".bowl-state.json"); bool initial=!File.Exists(ledger);
         var records=ReadLedger<Arrival>(ledger);
         long next=records.Count==0?1:records.Values.Max(e=>e.order)+1;
@@ -125,7 +126,10 @@ partial class BowlFiles {
         foreach(string path in files) {
             string key=Relative(root,path); present.Add(key);
             var info=new FileInfo(path); long length;
-            try { length=info.Length; } catch(IOException) { continue; }
+            try { Guard(path,true); length=info.Length; }
+            catch(IOException e) { sizesComplete=false; errors.Add(e.Message); continue; }
+            catch(UnauthorizedAccessException e) { sizesComplete=false; errors.Add(e.Message); continue; }
+            if(smallestBytes<0||length<smallestBytes) smallestBytes=length;
             total=checked(total+length); bool ready=false; string token="";
             try {
                 Guard(path,true);
@@ -147,7 +151,28 @@ partial class BowlFiles {
             try { if(!File.Exists(icon)) SaveIcon(path,icon); row["icon"]=icon; }
             catch(Exception) {} // An icon failure uses the app's generic icon, not a FIFO bypass.
         }
-        return new {ok=true,bytes=total,entries=rows,stomach_bytes=gutBytes,errors=errors};
+        // The visible queue is capped at 128 entries, but this proof covers every
+        // enumerated food file. An incomplete scan must never permit overflow.
+        return new {ok=true,bytes=total,entries=rows,smallest_bytes=sizesComplete&&errors.Count==0?smallestBytes:-1,stomach_bytes=gutBytes,errors=errors};
+    }
+    static bool AllQueuedFoodExceedsCapacity(string heldPath,long heldBytes) {
+        var errors=new List<string>(); var files=new List<string>(); Walk(root,files,errors);
+        if(errors.Count!=0||files.Count==0) return false;
+        bool foundHeld=false;
+        foreach(string path in files) {
+            try {
+                Guard(path,true);
+                if(String.Equals(Path.GetFullPath(path),Path.GetFullPath(heldPath),StringComparison.OrdinalIgnoreCase)) {
+                    foundHeld=true;
+                    if(heldBytes<=stomachCapacity) return false;
+                } else using(var stream=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.Read)) {
+                    Token(stream); // Reject a link or replacement while checking.
+                    if(stream.Length<=stomachCapacity) return false;
+                }
+            } catch(IOException) { return false; }
+              catch(UnauthorizedAccessException) { return false; }
+        }
+        return foundHeld;
     }
     static object Swallow(string path,string expected) {
         Guard(path,true); if(Metadata(path)) throw new IOException("配置文件不可投喂");
@@ -156,7 +181,14 @@ partial class BowlFiles {
         var records=ReadLedger<GutEntry>(ledger);
         using(var handle=MutationHandle(path)) {
             if(Token(handle)!=expected) throw new IOException("文件已修改，保留文件并重新排队");
-            if(handle.Length>stomachCapacity-used) throw new IOException("胃袋装不下这份食物，已留在饭盆");
+            if(handle.Length>stomachCapacity-used) {
+                // One whole oversized file can end a hungry meal when every
+                // food exceeds the configured capacity. Recheck live files in
+                // the worker's existing mutex; never trust a UI permission flag.
+                bool oversized=handle.Length>stomachCapacity&&used<stomachCapacity&&used*2<stomachCapacity
+                    &&errors.Count==0&&AllQueuedFoodExceedsCapacity(path,handle.Length);
+                if(!oversized) throw new IOException("胃袋装不下这份食物，已留在饭盆");
+            }
             string name=Path.GetFileName(path),target=Path.Combine(stomach,name); int suffix=2;
             while(File.Exists(target)||Directory.Exists(target)) target=Path.Combine(stomach,Path.GetFileNameWithoutExtension(name)+" ("+(suffix++)+")"+Path.GetExtension(name));
             Guard(target,false); string key=Relative(stomach,target);

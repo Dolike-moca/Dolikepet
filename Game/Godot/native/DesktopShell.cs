@@ -25,29 +25,37 @@ internal static class DesktopShell
     interface ITaskbarList { void HrInit(); void AddTab(IntPtr h); void DeleteTab(IntPtr h); void ActivateTab(IntPtr h); void SetActiveAlt(IntPtr h); }
     [ComImport,Guid("56FDF342-FD6D-11D0-958A-006097C9A090")] class TaskbarList { }
     static ITaskbarList taskbar;
-    static readonly HashSet<IntPtr> registered=new HashSet<IntPtr>();
+    sealed class WindowState { internal bool Visible; internal long LastDelete; }
+    static readonly Dictionary<IntPtr,WindowState> registered=new Dictionary<IntPtr,WindowState>();
+    sealed class Entry { internal IntPtr Handle; internal bool DesktopWidget; }
 
-    internal static bool Maintain(IntPtr h,int owner,bool desktopFront)
+    internal static bool Maintain(IntPtr h,int owner,bool desktopFront,bool desktopWidget=true)
     {
         uint pid; GetWindowThreadProcessId(h,out pid);
         if(h==IntPtr.Zero || pid!=(uint)owner) return false;
         long ex=GetLong(h,-20).ToInt64(), style=GetLong(h,-16).ToInt64();
-        long wantedEx=(ex|ToolWindow)&~AppWindow, wantedStyle=style&~(MinimizeBox|MaximizeBox);
+        long wantedEx=(ex|ToolWindow)&~AppWindow, wantedStyle=desktopWidget ? style&~(MinimizeBox|MaximizeBox) : style;
         bool changed=ex!=wantedEx || style!=wantedStyle;
         if(changed) {
             SetLong(h,-20,new IntPtr(wantedEx)); SetLong(h,-16,new IntPtr(wantedStyle));
             SetWindowPos(h,IntPtr.Zero,0,0,0,0,0x37); // Frame changed, no size/position/z/focus changes.
         }
-        if(changed || registered.Add(h)) {
+        WindowState state; bool first=!registered.TryGetValue(h,out state);
+        if(first) { state=new WindowState(); registered[h]=state; }
+        bool visible=IsWindowVisible(h); long now=Stopwatch.GetTimestamp();
+        // Explorer can recreate a taskbar button after Show/Hide or a shell
+        // restart without any Win32 style change. Reassert while visible too.
+        if(changed || first || (visible && !state.Visible) || (visible && now-state.LastDelete>=Stopwatch.Frequency)) {
             try {
                 if(taskbar==null) { taskbar=(ITaskbarList)new TaskbarList(); taskbar.HrInit(); }
-                taskbar.DeleteTab(h);
+                taskbar.DeleteTab(h); state.LastDelete=now;
             } catch(COMException) { taskbar=null; }
         }
+        state.Visible=visible;
         // A hidden cauldron stays hidden. Show Desktop may minimize a visible widget;
         // restoring without activation never steals keyboard input from another app.
-        if(IsWindowVisible(h) && IsIconic(h)) ShowWindow(h,4);
-        if(desktopFront && IsWindowVisible(h) && DesktopAbove(h))
+        if(desktopWidget && IsWindowVisible(h) && IsIconic(h)) ShowWindow(h,4);
+        if(desktopWidget && desktopFront && IsWindowVisible(h) && DesktopAbove(h))
             SetWindowPos(h,(wantedEx&8)!=0 ? new IntPtr(-1) : IntPtr.Zero,0,0,0,0,0x13);
         return true;
     }
@@ -84,19 +92,22 @@ internal static class DesktopShell
         string request=Path.GetFullPath(args[1]);
         try {
             using(var parent=Process.GetProcessById(owner)) {
-                var handles=new List<IntPtr>(); string previous="";
+                var handles=new List<Entry>(); string previous="";
                 while(!parent.HasExited) {
                     try {
                         string text=File.ReadAllText(request);
                         if(text!=previous) {
-                            var next=new List<IntPtr>();
-                            foreach(var line in text.Split('\n')) { long value; if(long.TryParse(line.Trim(),out value)) next.Add(new IntPtr(value)); }
+                            var next=new List<Entry>();
+                            foreach(var line in text.Split('\n')) {
+                                var parts=line.Trim().Split(':'); long value;
+                                if(long.TryParse(parts[0],out value)) next.Add(new Entry { Handle=new IntPtr(value), DesktopWidget=parts.Length==1 || parts[1]=="1" });
+                            }
                             handles=next; previous=text;
                         }
                     } catch(IOException) { }
                     bool desktop=DesktopInFront();
-                    if(desktop) handles.Sort((a,b)=>ZRank(b).CompareTo(ZRank(a)));
-                    foreach(var handle in handles) Maintain(handle,owner,desktop);
+                    if(desktop) handles.Sort((a,b)=>ZRank(b.Handle).CompareTo(ZRank(a.Handle)));
+                    foreach(var handle in handles) Maintain(handle.Handle,owner,desktop,handle.DesktopWidget);
                     Thread.Sleep(150);
                 }
             }

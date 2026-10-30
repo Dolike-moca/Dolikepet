@@ -89,8 +89,14 @@ edit("src/gd_cubism_user_model.cpp",
      'ClassDB::bind_method(D_METHOD("get_raw_mesh_vertices"), &GDCubismUserModel::get_raw_mesh_vertices);',
      'ClassDB::bind_method(D_METHOD("get_raw_mesh_vertices"), &GDCubismUserModel::get_raw_mesh_vertices);\n'
      '    ClassDB::bind_method(D_METHOD("set_desktop_passthrough", "handle", "enabled"), &GDCubismUserModel::set_desktop_passthrough);')
+if 'env.Append(LIBS=["user32"])' in (root / "SConstruct").read_text(encoding="utf-8"):
+    edit("SConstruct", 'env.Append(LIBS=["user32"])',
+         'env.Append(LIBS=["user32", "crypt32", "ole32"])')
+if 'env.Append(LIBS=["user32", "crypt32"])' in (root / "SConstruct").read_text(encoding="utf-8"):
+    edit("SConstruct", 'env.Append(LIBS=["user32", "crypt32"])',
+         'env.Append(LIBS=["user32", "crypt32", "ole32"])')
 edit("SConstruct", 'sources = glob("src/*.cpp")',
-     'if env["platform"] == "windows":\n    env.Append(LIBS=["user32"])\n\nsources = glob("src/*.cpp")')
+     'if env["platform"] == "windows":\n    env.Append(LIBS=["user32", "crypt32", "ole32"])\n\nsources = glob("src/*.cpp")')
 bridge = Path(__file__).resolve().parents[1] / "native/pet_pointer_bridge.cpp"
 edit("src/gd_cubism_user_model.hpp", "bool set_desktop_passthrough(int64_t handle, bool enabled);",
      "bool set_desktop_passthrough(int64_t handle, bool enabled);\n"
@@ -113,4 +119,48 @@ edit("src/gd_cubism_user_model.cpp",
      'ClassDB::bind_method(D_METHOD("desktop_capture_matches", "handle"), &GDCubismUserModel::desktop_capture_matches);\n'
      '    ClassDB::bind_method(D_METHOD("restore_desktop_visibility", "handle"), &GDCubismUserModel::restore_desktop_visibility);')
 (root / "src/private/pet_pointer_bridge.cpp").write_bytes(bridge.read_bytes())
-print("Applied Native compatibility, CPU vertex and desktop pointer patches.")
+edit("src/gd_cubism_user_model.hpp", "#include <godot_cpp/classes/node2d.hpp>",
+     "#include <godot_cpp/classes/node2d.hpp>\n#include <godot_cpp/variant/packed_byte_array.hpp>")
+edit("src/gd_cubism_user_model.hpp", "bool restore_desktop_visibility(int64_t handle);",
+     "bool restore_desktop_visibility(int64_t handle);\n"
+     "    PackedByteArray encrypt_desktop_secret(const PackedByteArray &plain) const;\n"
+     "    PackedByteArray decrypt_desktop_secret(const PackedByteArray &encrypted) const;")
+edit("src/gd_cubism_user_model.cpp",
+     'ClassDB::bind_method(D_METHOD("restore_desktop_visibility", "handle"), &GDCubismUserModel::restore_desktop_visibility);',
+     'ClassDB::bind_method(D_METHOD("restore_desktop_visibility", "handle"), &GDCubismUserModel::restore_desktop_visibility);\n'
+     '    ClassDB::bind_method(D_METHOD("encrypt_desktop_secret", "plain"), &GDCubismUserModel::encrypt_desktop_secret);\n'
+     '    ClassDB::bind_method(D_METHOD("decrypt_desktop_secret", "encrypted"), &GDCubismUserModel::decrypt_desktop_secret);')
+secrets = Path(__file__).resolve().parents[1] / "native/pet_ai_secrets.cpp"
+(root / "src/private/pet_ai_secrets.cpp").write_bytes(secrets.read_bytes())
+edit("src/gd_cubism_user_model.hpp", "PackedByteArray decrypt_desktop_secret(const PackedByteArray &encrypted) const;",
+     "PackedByteArray decrypt_desktop_secret(const PackedByteArray &encrypted) const;\n"
+     "    Dictionary companion_activity_snapshot() const;\n"
+     "    bool show_companion_without_activation(int64_t handle);\n"
+     "    int64_t companion_foreground_handle() const;")
+edit("src/gd_cubism_user_model.cpp",
+     'ClassDB::bind_method(D_METHOD("decrypt_desktop_secret", "encrypted"), &GDCubismUserModel::decrypt_desktop_secret);',
+     'ClassDB::bind_method(D_METHOD("decrypt_desktop_secret", "encrypted"), &GDCubismUserModel::decrypt_desktop_secret);\n'
+     '    ClassDB::bind_method(D_METHOD("companion_activity_snapshot"), &GDCubismUserModel::companion_activity_snapshot);\n'
+     '    ClassDB::bind_method(D_METHOD("show_companion_without_activation", "handle"), &GDCubismUserModel::show_companion_without_activation);\n'
+     '    ClassDB::bind_method(D_METHOD("companion_foreground_handle"), &GDCubismUserModel::companion_foreground_handle);')
+companion = Path(__file__).resolve().parents[1] / "native/pet_companion_desktop.cpp"
+edit("src/gd_cubism_user_model.hpp", "int64_t companion_foreground_handle() const;",
+     "int64_t companion_foreground_handle() const;\n"
+     "    bool exclude_desktop_window_from_taskbar(int64_t handle, bool desktop_widget);\n"
+     "    bool desktop_window_is_taskbar_hidden(int64_t handle) const;")
+edit("src/gd_cubism_user_model.cpp",
+     'ClassDB::bind_method(D_METHOD("companion_foreground_handle"), &GDCubismUserModel::companion_foreground_handle);',
+     'ClassDB::bind_method(D_METHOD("companion_foreground_handle"), &GDCubismUserModel::companion_foreground_handle);\n'
+     '    ClassDB::bind_method(D_METHOD("exclude_desktop_window_from_taskbar", "handle", "desktop_widget"), &GDCubismUserModel::exclude_desktop_window_from_taskbar);\n'
+     '    ClassDB::bind_method(D_METHOD("desktop_window_is_taskbar_hidden", "handle"), &GDCubismUserModel::desktop_window_is_taskbar_hidden);')
+edit("src/gd_cubism_user_model.hpp", "bool desktop_window_is_taskbar_hidden(int64_t handle) const;",
+     "bool desktop_window_is_taskbar_hidden(int64_t handle) const;\n"
+     "    bool set_companion_window_opacity(int64_t handle, double opacity);\n"
+     "    double get_companion_window_opacity(int64_t handle) const;")
+edit("src/gd_cubism_user_model.cpp",
+     'ClassDB::bind_method(D_METHOD("desktop_window_is_taskbar_hidden", "handle"), &GDCubismUserModel::desktop_window_is_taskbar_hidden);',
+     'ClassDB::bind_method(D_METHOD("desktop_window_is_taskbar_hidden", "handle"), &GDCubismUserModel::desktop_window_is_taskbar_hidden);\n'
+     '    ClassDB::bind_method(D_METHOD("set_companion_window_opacity", "handle", "opacity"), &GDCubismUserModel::set_companion_window_opacity);\n'
+     '    ClassDB::bind_method(D_METHOD("get_companion_window_opacity", "handle"), &GDCubismUserModel::get_companion_window_opacity);')
+(root / "src/private/pet_companion_desktop.cpp").write_bytes(companion.read_bytes())
+print("Applied Native compatibility, CPU vertex, desktop pointer, DPAPI and companion patches.")

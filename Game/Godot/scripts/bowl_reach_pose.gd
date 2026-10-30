@@ -63,7 +63,8 @@ func prepare(pose: Dictionary, dt: float) -> Dictionary:
 	var face_target := 1.0 if chanting else 0.0
 	chant_face = lerpf(chant_face,face_target,1.0-exp(-28.0*step))
 	if absf(chant_face-face_target)<0.001: chant_face = face_target
-	var jaw_target := Behavior.speaking_openness(time) if chanting else 0.0
+	var speech_time: float = time * pose.get("speechSpeed", 1.0)
+	var jaw_target := Behavior.speaking_openness(speech_time) if chanting else 0.0
 	chant_mouth = lerpf(chant_mouth,jaw_target,1.0-exp(-22.0*step))
 	if chant_mouth<0.001: chant_mouth = 0.0
 	if chant_face>0.0:
@@ -71,7 +72,7 @@ func prepare(pose: Dictionary, dt: float) -> Dictionary:
 		result.mouth = lerpf(pose.mouth,chant_mouth,chant_face)
 	var calling: bool = pose.get("bowlCalling",false) and not summoning
 	if calling:
-		mouth_open = calling_openness(time)*smoothstep(0.0,0.9,pose.get("bowlReach",0.0))
+		mouth_open = calling_openness(speech_time)*smoothstep(0.0,0.9,pose.get("bowlReach",0.0))
 		release_age = 0.0
 	else:
 		if was_calling: release_open = mouth_open; release_age = 0.0

@@ -3,6 +3,7 @@ extends Node2D
 const Behavior = preload("res://scripts/pet_behavior.gd")
 const LivePet = preload("res://scripts/live2d_pet.gd")
 const IdleSitting = preload("res://scripts/idle_sitting.gd")
+const SleepCycle = preload("res://scripts/sleep_cycle.gd")
 const PetSettings = preload("res://scripts/pet_settings.gd")
 const Roaming = preload("res://scripts/roaming.gd")
 const DragMotion = preload("res://scripts/drag_motion.gd")
@@ -32,6 +33,15 @@ const DizzyCarry = preload("res://scripts/dizzy_carry.gd")
 const PetSize = preload("res://scripts/pet_size.gd")
 const SizeChange = preload("res://scripts/size_change.gd")
 const SizeFlash = preload("res://scripts/size_flash.gd")
+const AICompanion = preload("res://scripts/ai_companion.gd")
+const AIChatWindow = preload("res://scripts/ai_chat_window.gd")
+const AIMemoryWindow = preload("res://scripts/ai_memory_window.gd")
+const AISpeech = preload("res://scripts/ai_speech.gd")
+const SpeechMouth = preload("res://scripts/speech_mouth.gd")
+const SpeechSpeed = preload("res://scripts/speech_speed.gd")
+const TextReveal = preload("res://scripts/text_reveal.gd")
+const ChatGPTAuth = preload("res://scripts/chatgpt_auth.gd")
+const ProactiveCompanion = preload("res://scripts/proactive_companion.gd")
 const SETTINGS := "user://desktop-pet.cfg"
 const ACTIONS := ["normal", "blink", "closed", "happy", "closedHappy", "talk", "chew"]
 const LABELS := ["恢复正常", "眨一下眼", "闭眼", "张嘴笑", "闭眼笑", "说话口型演示（5 秒）", "咀嚼演示"]
@@ -39,6 +49,9 @@ const LABELS := ["恢复正常", "眨一下眼", "闭眼", "张嘴笑", "闭眼�
 var behavior = Behavior.new()
 var pet = LivePet.new()
 var idle_sitting = IdleSitting.new()
+var sleep_cycle = SleepCycle.new()
+var sleep_minute_override := -1 # Deterministic isolated host previews/tests.
+var sleep_owns_seat := false
 var roaming = Roaming.new()
 var drag_motion = DragMotion.new()
 var falling = DesktopPhysics.new()
@@ -97,12 +110,25 @@ var size_flash = SizeFlash.new()
 var size_anchor := Vector2(NAN,NAN)
 var size_canvas_pixels := 0 # Visible extent while a larger transparent canvas is reserved.
 var size_wheel_quiet := 0.0
+var ai_service = AICompanion.new()
+var ai_chat = AIChatWindow.new()
+var ai_memory = AIMemoryWindow.new()
+var ai_speech = AISpeech.new()
+var speech_mouth = SpeechMouth.new()
+var bubble_reveal = TextReveal.new()
+var bubble_speed_factor := 1.0
+var ai_bubble_owned := false
+var ai_compact_speech := false
+var ai_compact_speech_muted := false
+var chatgpt_auth = ChatGPTAuth.new()
+var proactive_companion = ProactiveCompanion.new()
 
 func _ready() -> void:
 	config = JSON.parse_string(FileAccess.get_file_as_string("res://config/pet.json"))
 	if config.is_empty():
 		push_error("无法读取 config/pet.json")
 		return
+	if settings_path == SETTINGS: desktop_shell.prepare_window(get_window(), true)
 	get_window().title = "Dolike 桌宠 · Godot"
 	get_window().min_size = Vector2i.ONE * int(config.minimumSize)
 	get_window().max_size = Vector2i.ONE * int(config.maximumSize)
@@ -125,9 +151,12 @@ func _ready() -> void:
 	_setup_hit_viewport()
 	add_child(size_flash)
 	size_flash.setup(hit_viewport)
+	add_child(ai_service)
+	settings_window.ai_service = ai_service
 	add_child(settings_window)
 	settings_window.common_settings_saved.connect(_apply_common_settings)
 	settings_window.settings_saved.connect(_apply_auto_sit_settings)
+	settings_window.sleep_settings_saved.connect(_apply_sleep_settings)
 	settings_window.visibility_changed.connect(func():
 		if not settings_window.visible:
 			idle_sitting.interact(false))
@@ -155,6 +184,7 @@ func _ready() -> void:
 	juggle_game.awarded.connect(game_scores.record_award)
 	juggle_game.round_finished.connect(game_scores.finish_round)
 	add_child(score_board); score_board.bind(game_scores)
+	_setup_ai()
 	catch_score.board_requested.connect(func(): score_board.open_board(get_window().current_screen))
 	add_child(desktop_shell)
 	if settings_path==SETTINGS:
@@ -168,11 +198,161 @@ func _ready() -> void:
 	settings_window.updater.notice_requested.connect(_queue_update_notice)
 	if settings_path == SETTINGS: settings_window.updater.start_automatic()
 
+func _setup_ai() -> void:
+	# All non-default hosts stay offline and use their own fixture directory.
+	var ai_root := "user://ai-companion" if settings_path == SETTINGS else settings_path + ".ai"
+	add_child(chatgpt_auth)
+	chatgpt_auth.setup(pet.model, ProjectSettings.globalize_path(ai_root), settings_path == SETTINGS)
+	ai_service.bind_auth(chatgpt_auth)
+	ai_service.external_proactive = true
+	ai_service.setup(pet.model, ProjectSettings.globalize_path(ai_root), settings_path == SETTINGS)
+	ai_chat.native_bridge = pet.model
+	add_child(ai_chat); ai_chat.setup(ai_service)
+	ai_chat.context_provider = _ai_context
+	add_child(ai_memory); ai_memory.setup(ai_service)
+	settings_window.ai_chat_requested.connect(_open_bubble_history)
+	settings_window.ai_memory_requested.connect(ai_memory.open_panel)
+	ai_chat.memory_requested.connect(ai_memory.open_panel)
+	ai_chat.settings_requested.connect(func():
+		_menu_action(14)
+		settings_window._select_page(3))
+	ai_service.request_started.connect(func(kind: String):
+		if kind == "chat": _wake_sleep()
+		if kind != "test":
+			_clear_ai_speech()
+			ai_compact_speech = kind == "chat" and proactive_companion.card.owns_reply())
+	ai_service.delta.connect(func(text: String):
+		if ai_service.request_kind != "proactive" and not ai_compact_speech_muted: ai_speech.append(text))
+	ai_service.reply_completed.connect(func(text: String, proactive: bool):
+		if not proactive and not ai_compact_speech_muted:
+			# Some compatible responders return only a completed message.
+			if ai_speech.segments == 0 and ai_speech.pending.is_empty(): ai_speech.append(text)
+			ai_speech.finish())
+	ai_service.failed.connect(func(_message: String): _clear_ai_speech())
+	ai_service.request_canceled.connect(_clear_ai_speech)
+	ai_service.account_changed.connect(_clear_ai_speech)
+	ai_service.state_changed.connect(func():
+		if not bool(ai_service.settings.get("enabled", false)): _clear_ai_speech())
+	add_child(proactive_companion)
+	proactive_companion.setup(self, ai_service, pet.model, ProjectSettings.globalize_path(ai_root), settings_path == SETTINGS)
+	proactive_companion.card.context_provider = _ai_context
+	ai_chat.input.text_changed.connect(func():
+		if ai_chat.visible: _wake_sleep())
+	proactive_companion.card.draft_changed.connect(func(_text: String):
+		if proactive_companion.card.visible: _wake_sleep())
+	proactive_companion.card.settings_requested.connect(_open_bubble_settings)
+	proactive_companion.card.memory_requested.connect(_open_bubble_memory)
+	proactive_companion.card.history_requested.connect(_open_bubble_history)
+	proactive_companion.card.dismissed.connect(func(_reason: String):
+		if ai_compact_speech:
+			_clear_ai_speech()
+			# Closing a live reply silences its remaining chunks. They still belong
+			# to this compact conversation, never to the old head-bubble surface.
+			ai_compact_speech = true
+			ai_compact_speech_muted = true)
+	proactive_companion.invitation_started.connect(func(text: String):
+		_clear_ai_speech(); ai_speech.append(text); ai_speech.finish())
+	proactive_companion.invitation_stopped.connect(_clear_ai_speech)
+	proactive_companion.invitation_expanded.connect(func():
+		if ai_bubble_owned: bubble.hide()
+		ai_bubble_owned = false
+		ai_compact_speech = true)
+	proactive_companion.card.spoken.connect(func(text: String):
+		_clear_ai_speech(); ai_compact_speech = true
+		ai_speech.append(text); ai_speech.finish())
+	proactive_companion.card.speech_stopped.connect(_clear_ai_speech)
+	catch_game.round_finished.connect(func(event: Dictionary): _ai_game_finished("catch", event))
+	juggle_game.round_finished.connect(func(event: Dictionary): _ai_game_finished("juggle", event))
+
+func _open_bubble_settings() -> void:
+	proactive_companion.card.suspend()
+	_menu_action(14)
+	settings_window._select_page(3)
+
+func _open_bubble_memory() -> void:
+	_wake_sleep()
+	proactive_companion.card.suspend()
+	ai_memory.open_panel()
+
+func _open_bubble_history() -> void:
+	if _chat_blocked_by_settings(): return
+	_wake_sleep()
+	proactive_companion.card.suspend()
+	ai_chat.open_panel()
+
+func _chat_blocked_by_settings() -> bool:
+	if not settings_window.visible: return false
+	_say("现在不行喵，先关掉设置再来找猫猫聊～", 4.0)
+	return true
+
+func _chat_pauses_roaming() -> bool:
+	# A temporarily hidden live conversation still owns its place next to the
+	# cat. A closed draft or an unfinished network request does not stop travel.
+	return ai_chat.visible or proactive_companion.card.is_open()
+
+func _ai_game_finished(game: String, event: Dictionary) -> void:
+	var total: Variant = event.get("total", 0)
+	var score := clampi(int(total), 0, 1000000000) if (total is int or total is float) and is_finite(float(total)) else 0
+	proactive_companion.game_finished(game, score)
+
+func _ai_context() -> Dictionary:
+	var snapshot := {"satiety_percent": roundf(100.0 * satiety.used / maxi(1, satiety.capacity)),
+		"size_percent": roundf(100.0 * _pet_size().x / float(PetSize.BASE)),
+		"hungry": not satiety.resting, "bowl_open": bowl_window.visible,
+		"dizzy": landing.state == "hard", "game": "juggle" if juggle_game.active() else ("catch" if catch_game.active() else "")}
+	if not game_scores.rounds.is_empty():
+		var recent: Dictionary = game_scores.rounds.back()
+		snapshot.last_game = str(recent.get("game", ""))
+		snapshot.last_game_score = int(recent.get("total", 0))
+	return snapshot
+
+func _clear_ai_speech() -> void:
+	ai_speech.clear()
+	ai_compact_speech = false
+	ai_compact_speech_muted = false
+	if ai_bubble_owned: bubble.hide()
+	ai_bubble_owned = false
+
+func _update_ai_presentation(dt: float, pose: Dictionary, idle: bool) -> void:
+	var quiet_idle: bool = idle and get_window().visible and not settings_window.visible \
+		and roaming.weight < 0.001 and behavior.mode == "normal"
+	var allowed: bool = quiet_idle and not sleep_cycle.active()
+	proactive_companion.tick(dt, allowed)
+	# Memory maintenance is silent and may continue during sleep; invitations may not.
+	ai_service.tick(dt, _ai_context(), quiet_idle and not bubble.visible and not ai_chat.visible and not ai_memory.visible \
+		and not proactive_companion.card.is_open())
+	# Already-visible replies can speak during other expressions/actions. Only
+	# starting proactive invitations and a new head bubble require idle time.
+	var visible_reply: bool = ai_chat.visible or proactive_companion.card.visible
+	allowed = get_window().visible and get_window().mode != Window.MODE_MINIMIZED \
+		and (allowed or visible_reply) and (not bubble.visible or ai_bubble_owned)
+	if ai_compact_speech: allowed = allowed and visible_reply
+	# A visible chat reveals one continuous answer; the head-bubble reader's
+	# per-segment pauses must not leave the jaw talking after that answer ends.
+	if ai_speech.finished and visible_reply:
+		var surface = proactive_companion.card if proactive_companion.card.visible else ai_chat
+		if surface.has_method("is_speech_complete") and surface.is_speech_complete(): ai_speech.clear()
+	var speed_factor := SpeechSpeed.factor(_speech_speed_index())
+	var speech: Dictionary = ai_speech.advance(dt, allowed, speed_factor)
+	# A compact reply already has its text surface. Keep mouth movement without
+	# replaying its queued sentences in a second bubble after the stream ends.
+	if not allowed or str(speech.text).is_empty() or ai_compact_speech or proactive_companion.card.visible:
+		if ai_bubble_owned: bubble.hide(); ai_bubble_owned = false
+	else:
+		if not ai_bubble_owned or not bubble.visible or bubble_label.text != speech.text:
+			_say(str(speech.text), ai_speech.remaining + 0.05, false)
+			ai_bubble_owned = true
+	ai_speech.apply(pose, allowed)
+	pose.speechSpeed = speed_factor
+	speech_mouth.advance(dt, bubble.visible and not ai_bubble_owned,
+		allowed and not str(speech.text).is_empty(), ai_speech.mouth, pose, speed_factor)
+
 func _queue_update_notice(id: String, text: String) -> void:
 	update_notices.append({"id":id,"text":text})
 
 func _show_update_notice() -> void:
-	if update_notices.is_empty() or bubble.visible or dragging or menu.visible: return
+	if sleep_cycle.active(): return
+	if update_notices.is_empty() or bubble.visible or dragging or menu.visible or proactive_companion.card.visible: return
 	if not get_window().visible or get_window().mode == Window.MODE_MINIMIZED: return
 	if catch_game.active() or juggle_game.active() or falling.active() or bowl_summon.active() or size_change.pending(): return
 	var notice: Dictionary = update_notices.pop_front()
@@ -228,7 +408,7 @@ func _setup_desktop_shell(cache_override := "") -> void:
 	# The native helper already removes taskbar/minimize/maximize styles.
 	# Changing Godot window flags after a transparent window has been shown
 	# rebuilds its Win32 style and leaves an opaque region until it is reopened.
-	desktop_shell.start(widgets,preload("res://assets/app/icon.png"),cache_override)
+	desktop_shell.start(widgets,preload("res://assets/app/icon.png"),cache_override,[settings_window])
 
 func _setup_menu() -> void:
 	add_child(menu)
@@ -248,6 +428,9 @@ func _setup_menu() -> void:
 	menu.add_check_item("视线跟随鼠标", 10)
 	menu.add_check_item("始终置顶", 11)
 	menu.add_item("桌宠设置…", 14)
+	menu.add_item("聊天记录…", 24)
+	menu.add_item("打开猫咪小对话框…", 25)
+	menu.add_item("睡觉", 33)
 	menu.add_item("计分板…", 23)
 	menu.add_separator()
 	menu.add_item("大小 100%", 32)
@@ -288,6 +471,7 @@ func _update_satiety_menu() -> void:
 	var percent := clampf(100.0*satiety.used/maxi(1,satiety.capacity),0.0,100.0)
 	menu.set_item_text(menu.get_item_index(30),"饱食度 %.1f%%" % percent)
 	satiety_bar.value = percent
+	menu.set_item_text(menu.get_item_index(33),"叫醒猫猫" if sleep_cycle.active() else "睡觉")
 
 func _setup_bubble() -> void:
 	var layer := CanvasLayer.new()
@@ -303,11 +487,41 @@ func _setup_bubble() -> void:
 	bubble.add_child(bubble_label)
 	_position_bubble()
 
-func _say(text: String, seconds: float) -> void:
+func _say(text: String, seconds: float, spoken: bool = true) -> void:
+	ai_bubble_owned = false
+	# Keep the complete text for stable wrapping, revealing only its character
+	# count. Reading time and jaw time share the same presentation speed.
+	var duration := maxf(seconds, text.length() / SpeechSpeed.BASE_CHARACTERS_PER_SECOND + 0.55)
+	if spoken:
+		bubble_reveal.replace(text)
+		speech_mouth.say(text, duration)
+	else:
+		bubble_reveal.set_text(text)
 	bubble_label.text = text
+	bubble_label.visible_characters = bubble_reveal.visible_text().length()
 	bubble.show()
-	bubble_until = Time.get_ticks_msec() / 1000.0 + seconds
+	bubble_speed_factor = SpeechSpeed.factor(_speech_speed_index())
+	bubble_until = Time.get_ticks_msec() / 1000.0 + duration / bubble_speed_factor
 	_position_bubble()
+
+func _speech_speed_index() -> int:
+	return int(ai_service.settings.get("speech_speed", SpeechSpeed.DEFAULT))
+
+func _invitation_visible_characters() -> int:
+	return ai_speech.completed_characters + (bubble_reveal.visible_text().length() if ai_bubble_owned else 0)
+
+func _advance_bubble_text(dt: float) -> void:
+	if not bubble.visible: return
+	var now := Time.get_ticks_msec() / 1000.0
+	var speed := SpeechSpeed.factor(_speech_speed_index())
+	if not is_equal_approx(speed, bubble_speed_factor):
+		# A saved speed change affects the remaining sentence without replaying
+		# its prefix or altering any network request.
+		bubble_until = now + maxf(0.0, bubble_until - now) * bubble_speed_factor / speed
+		bubble_speed_factor = speed
+	var shown: String = bubble_reveal.advance(dt, SpeechSpeed.chars_per_second(_speech_speed_index()))
+	bubble_label.visible_characters = shown.length()
+	if now >= bubble_until and bubble_reveal.done(): bubble.hide()
 
 func _position_bubble() -> void:
 	var width := minf(280.0, get_window().size.x - 16.0)
@@ -321,8 +535,7 @@ func _process(dt: float) -> void:
 		return
 	if menu.visible: _update_satiety_menu()
 	_update_catch_game(dt)
-	if bubble.visible and Time.get_ticks_msec() / 1000.0 >= bubble_until:
-		bubble.hide()
+	_advance_bubble_text(dt)
 	_show_update_notice()
 	if dragging:
 		_poll_drag_pointer(dt)
@@ -335,7 +548,7 @@ func _process(dt: float) -> void:
 		if menu_holding and not menu.visible and window.mode != Window.MODE_MINIMIZED:
 			_release_menu_hold()
 		var drag_paused: bool = food_dialog_open or window.mode == Window.MODE_MINIMIZED
-		var bowl_blocked: bool = catch_game.active() or juggle_game.active() or dragging or menu.visible or drag_paused or drag_motion.active() or falling.active() or landing.active() or bowl_hit.active() or size_change.pending()
+		var bowl_blocked: bool = sleep_cycle.active() or catch_game.active() or juggle_game.active() or dragging or menu.visible or drag_paused or drag_motion.active() or falling.active() or landing.active() or bowl_hit.active() or size_change.pending()
 		var bowl_step := _update_bowl(dt,bowl_blocked,area)
 		if bowl_step.move: window.position = Vector2i(bowl_step.position.round())
 		if not falling.active(): falling.physical_facing = 1.0 if pet.facing_scale >= 0.0 else -1.0
@@ -346,6 +559,7 @@ func _process(dt: float) -> void:
 			idle_sitting.interact(false)
 		var fall: Dictionary = falling.update(dt, Vector2(window.position), Vector2(_pet_size()), falling.area, dragging or menu_holding or bowl_jump.active() or bowl_step.move, drag_paused)
 		if fall.started:
+			_wake_sleep(true)
 			if not bowl_hit.active():
 				pickup.cancel(true)
 				behavior.chewing.cancel()
@@ -381,7 +595,7 @@ func _process(dt: float) -> void:
 				manual_sit_pending = false
 				idle_sitting.manual_pose()
 				pet.set_seated(true)
-		_advance_size_change(dt, drag_paused or dragging or menu_holding or menu.visible or settings_window.visible \
+		_advance_size_change(dt, sleep_cycle.active() or drag_paused or dragging or menu_holding or menu.visible or settings_window.visible \
 			or catch_game.active() or juggle_game.active() or falling.active() or drag_motion.active() \
 			or landing.active() or bowl_hit.active() or bowl_summon.active() or bowl_jump.active() \
 			or pickup.active() or behavior.chewing.active() or roaming.weight > 0.001 \
@@ -392,11 +606,15 @@ func _process(dt: float) -> void:
 			or get_window().mode == Window.MODE_MINIMIZED \
 			or behavior.time < behavior.talk_until or behavior.time < behavior.reaction_until
 		busy = busy or behavior.chewing.active() or pickup.active() or bowl_jump.active() or bowl_step.move or bowl_hit.active() or bowl_summon.active()
-		if idle_sitting.advance(dt, busy or roaming.rest_requested or is_finite(bowl_step.goal), pet.sitting.seated):
+		var chat_pause := _chat_pauses_roaming()
+		_advance_sleep(dt, busy and not menu.visible)
+		var sleeping: bool = sleep_cycle.active()
+		if idle_sitting.advance(dt, busy or sleeping or chat_pause or roaming.rest_requested or is_finite(bowl_step.goal), pet.sitting.seated):
 			roaming.request_rest()
 			bubble.hide()
 		var movement: Dictionary = roaming.update(dt, Vector2(window.position), Vector2(_pet_size()),
-			area, pet.sitting.amount, pet.sitting.seated, idle_sitting.automatically_seated, busy, menu.visible and not drag_paused,bowl_step.goal)
+			area, pet.sitting.amount, pet.sitting.seated, idle_sitting.automatically_seated,
+			busy or sleeping or chat_pause, menu.visible and not drag_paused and not chat_pause and not sleeping, bowl_step.goal)
 		if movement.move:
 			window.position = Vector2i(movement.position.round())
 			save_timer = 0.6
@@ -415,7 +633,7 @@ func _process(dt: float) -> void:
 			pickup_pose.bowlSource = bowl_window.surface_point()-Vector2(window.position)
 		if pickup.take_eat_request(): behavior.command("chew",pickup_pose.biteChewAge)
 		var cursor := Vector2(DisplayServer.mouse_get_position() - get_window().position)
-		var active: bool = gaze_enabled and not juggle_game.active() and not dragging and not menu.visible \
+		var active: bool = gaze_enabled and not sleeping and not juggle_game.active() and not dragging and not menu.visible \
 			and not drag_motion.active() and not falling.active() and not landing.active() and not bowl_hit.active() \
 			and not settings_window.visible and get_window().mode != Window.MODE_MINIMIZED
 		var anchor: Vector2 = pet.gaze_anchor()
@@ -464,6 +682,8 @@ func _process(dt: float) -> void:
 		pose = bowl_hit.prepare(pose)
 		pose = dizzy_carry.prepare(pose,0.0 if drag_paused else dt,landing.suspended and landing.state=="hard",falling.state=="held",drag_motion.velocity.x)
 		pose = juggle_motion.prepare(pose,0.0 if drag_paused else dt,juggle_game.active(),dragging,drag_motion.velocity.x,juggle_game.active() or landing.state!="hard")
+		pose.merge(sleep_cycle.pose(),true)
+		_update_ai_presentation(dt, pose, not busy and not menu_holding)
 		pose.motionReset = motion_reset_pending or dt > 0.12 or window.mode == Window.MODE_MINIMIZED
 		if not (drag_paused and landing.active()):
 			pet.apply_pose(pose, minf(dt, 0.1))
@@ -601,6 +821,7 @@ func _begin_grab(user_grab := true) -> void:
 	_finish_size_canvas()
 	if not pet.available:
 		return
+	_wake_sleep(true)
 	if user_grab and not juggle_game.active():
 		var old_best: int = catch_game.best
 		catch_game.caught(Time.get_ticks_msec()/1000.0,falling.body.wall_sequence,
@@ -652,7 +873,12 @@ func _finish_drag(cancel_click := false) -> void:
 
 func _menu_action(id: int) -> void:
 	bowl_window.end_juggle("打开菜单 · 本轮结束")
+	if id == 33:
+		if sleep_cycle.active(): _wake_sleep()
+		else: _request_sleep()
+		return
 	_register_interaction()
+	if id < ACTIONS.size() or id in [12,13,15,16,20,21,22]: _wake_sleep(true)
 	if id < ACTIONS.size() or id in [12, 13, 20, 21, 22]: pickup.cancel()
 	if id < ACTIONS.size() or id == 13: landing.cancel()
 	if id < ACTIONS.size():
@@ -682,7 +908,7 @@ func _menu_action(id: int) -> void:
 				satiety.capacity,satiety.digestion_hours,satiety.auto_open,satiety.used,satiety.resting,
 				{"size": size_change.target if size_change.pending() else get_window().size.x, "default_size": int(config.windowSize),
 				"minimum_size": int(config.minimumSize), "maximum_size": int(config.maximumSize),
-				"gaze": gaze_enabled, "topmost": get_window().always_on_top})
+				"gaze": gaze_enabled, "topmost": get_window().always_on_top, "sleep":sleep_cycle.settings()})
 		15:
 			_start_pickup_demo()
 		16:
@@ -712,10 +938,17 @@ func _menu_action(id: int) -> void:
 			_exit()
 		23:
 			score_board.open_board(get_window().current_screen)
+		24:
+			_open_bubble_history()
+		25:
+			if not _chat_blocked_by_settings():
+				ai_chat.hide()
+				proactive_companion.reopen()
 	save_timer = 0.3
 
 func _start_pickup_demo() -> void:
 	if not pet.available: return
+	_wake_sleep(true)
 	if falling.active() or dragging or menu_holding or landing.active():
 		_say("等站稳后再取食喵～", 2.0)
 		return
@@ -737,6 +970,7 @@ func _start_pickup_demo() -> void:
 
 func _feed_pngs(paths: PackedStringArray) -> void:
 	food_dialog_open = false
+	_wake_sleep(true)
 	var items: Array = []
 	var skipped := 0
 	for path in paths:
@@ -881,6 +1115,10 @@ func _load_settings() -> void:
 		maximum = IdleSitting.DEFAULT_MAX_SECONDS
 	idle_sitting.configure(bool(settings.get_value("pet", "auto_sit_enabled", true)),
 		float(minimum), float(maximum))
+	var sleep_settings := {}
+	for key in ["enabled","start_minute","end_minute","frequency"]:
+		if settings.has_section_key("sleep",key): sleep_settings[key] = settings.get_value("sleep",key)
+	sleep_cycle.configure(sleep_settings)
 	roaming.configure(str(settings.get_value("pet", "roaming_mode", "calm")))
 	falling.configure(bool(settings.get_value("pet", "auto_fall_enabled", true)))
 	bowl_capacity = BowlCapacity.sanitize(settings.get_value("bowl","capacity_bytes",BowlCapacity.DEFAULT))
@@ -893,9 +1131,71 @@ func _load_settings() -> void:
 	if bowl_at is Vector2i: bowl_saved_position = bowl_at
 
 func _register_interaction(wake: bool = true) -> void:
+	var was_sleeping: bool = sleep_cycle.active()
+	if wake: _wake_sleep()
+	proactive_companion.note_interaction()
 	roaming.interrupt()
-	if idle_sitting.interact(wake and not landing.active()) and pet.available:
+	if idle_sitting.interact(wake and not was_sleeping and not landing.active()) and pet.available:
 		pet.set_seated(false)
+
+func _sleep_minute() -> int:
+	if sleep_minute_override >= 0: return sleep_minute_override
+	var clock := Time.get_time_dict_from_system()
+	return int(clock.hour)*60+int(clock.minute)
+
+func _sleep_blocked(other_busy: bool = false, manual: bool = false) -> bool:
+	return other_busy or dragging or menu_holding or food_dialog_open or settings_window.visible or ai_memory.visible or score_board.visible \
+		or _chat_pauses_roaming() or catch_game.active() or juggle_game.active() or falling.active() or drag_motion.active() \
+		or landing.active() or bowl_hit.active() or bowl_summon.active() or bowl_jump.active() or size_change.pending() \
+		or pickup.active() or behavior.chewing.active() or not bowl_files.pending.is_empty() \
+		or behavior.time < behavior.talk_until or behavior.time < behavior.reaction_until \
+		or get_window().mode == Window.MODE_MINIMIZED or not get_window().visible \
+		or (ai_service.busy and str(ai_service.request_kind) in ["chat","proactive","test"]) \
+		or (not sleep_cycle.active() and not manual and (bubble.visible or menu.visible or behavior.mode != "normal"))
+
+func _request_sleep() -> void:
+	# Menu selection is a deliberate request; the popup may close next frame.
+	var popup_open := menu.visible
+	if popup_open: menu.hide()
+	if _sleep_blocked(false,true) or roaming.travelling() or roaming.weight > 0.001:
+		_say("等猫猫忙完、站稳再睡喵～",2.5)
+		return
+	proactive_companion.note_interaction()
+	sleep_cycle.request_sleep()
+	_update_satiety_menu()
+
+func _wake_sleep(immediate: bool = false) -> void:
+	var had_sleep: bool = sleep_cycle.active()
+	if had_sleep and immediate:
+		# Carry the last lid aperture into the ordinary expression controller.
+		behavior.expression_eye = float(sleep_cycle.pose().get("sleepEye",1.0))
+		behavior.blink_was_closed = true
+	sleep_cycle.interact(immediate)
+	if had_sleep and immediate and sleep_owns_seat:
+		sleep_owns_seat = false
+		idle_sitting.interact(false)
+		if pet.available: pet.set_seated(false)
+
+func _advance_sleep(dt: float, other_busy: bool = false) -> void:
+	var settled: bool = not roaming.travelling() and roaming.weight < 0.001 \
+		and (pet.sitting.amount < 0.001 or pet.sitting.amount >= 0.999)
+	var event: Dictionary = sleep_cycle.advance(dt,{"minute":_sleep_minute(),"blocked":_sleep_blocked(other_busy),"settled":settled})
+	if event.started:
+		sleep_owns_seat = true
+		manual_sit_pending = false
+		idle_sitting.manual_pose(); roaming.interrupt()
+		behavior.command("normal"); _clear_ai_speech()
+		_say("猫猫眯一会儿喵…",2.0)
+	if event.sit: pet.set_seated(true,0.65)
+	if event.finished and sleep_owns_seat:
+		sleep_owns_seat = false
+		idle_sitting.interact(false); roaming.interrupt()
+		pet.set_seated(false)
+	if event.started or event.waking or event.finished: _update_satiety_menu()
+
+func _apply_sleep_settings(value: Dictionary) -> void:
+	sleep_cycle.configure(value)
+	_save_settings()
 
 func _apply_topmost(value: bool) -> void:
 	for window in [get_window(), bowl_window, catch_score]:
@@ -936,6 +1236,8 @@ func _save_settings() -> void:
 	settings.set_value("pet", "auto_sit_enabled", idle_sitting.enabled)
 	settings.set_value("pet", "auto_sit_min_seconds", idle_sitting.minimum_seconds)
 	settings.set_value("pet", "auto_sit_max_seconds", idle_sitting.maximum_seconds)
+	var sleep_settings: Dictionary = sleep_cycle.settings()
+	for key in sleep_settings: settings.set_value("sleep",key,sleep_settings[key])
 	settings.set_value("pet", "roaming_mode", roaming.mode)
 	settings.set_value("pet", "auto_fall_enabled", falling.enabled)
 	settings.set_value("bowl","capacity_bytes",bowl_capacity)
@@ -952,6 +1254,7 @@ func _save_settings() -> void:
 		push_warning("桌宠设置保存失败：" + error_string(result))
 
 func _exit() -> void:
+	ai_service.shutdown()
 	bowl_window.end_juggle("退出桌宠 · 本轮结束")
 	catch_game.finish("退出桌宠 · 本轮结束")
 	_save_settings()
@@ -999,6 +1302,7 @@ func _setup_bowl() -> void:
 	if bowl_enabled: _set_bowl_visible(true)
 
 func _on_pet_files_dropped(paths: PackedStringArray) -> void:
+	_register_interaction()
 	bowl_window.receive_covered_drop(paths,Vector2(DisplayServer.mouse_get_position()))
 
 func _bowl_hit_target() -> Dictionary:
@@ -1018,6 +1322,7 @@ func _bowl_hit_target() -> Dictionary:
 	return {"cap":cap,"extent":float(_pet_size().y),"juggle":can_juggle,"velocity":head_speed}
 
 func _on_juggled(event: Dictionary) -> void:
+	_wake_sleep(true)
 	if not juggle_game.active():
 		catch_game.finish("开始颠锅 · 本轮结束")
 		pickup.cancel(true); behavior.chewing.cancel()
@@ -1031,6 +1336,7 @@ func _on_juggled(event: Dictionary) -> void:
 	juggle_motion.struck()
 
 func _on_bowl_hit(impact: Dictionary) -> void:
+	_wake_sleep(true)
 	var summoning: bool = bowl_summon.state=="calling"
 	if bowl_summon.active(): bowl_summon.finish(); bubble.hide()
 	var duration := clampf(float(impact.get("dizzy_seconds",3.0)),3.0,6.0)
@@ -1046,7 +1352,7 @@ func _on_bowl_hit(impact: Dictionary) -> void:
 	bubble.hide()
 
 func _bowl_in_reach() -> bool:
-	if satiety.resting or not bowl_files.storage_ready: return false
+	if sleep_cycle.active() or satiety.resting or not bowl_files.storage_ready: return false
 	if juggle_game.active() or not bowl_window.visible or bowl_summon.active() or bowl_jump.active() or dragging or falling.active() or landing.active() or bowl_hit.active(): return false
 	var window := get_window()
 	if window.current_screen != bowl_window.current_screen: return false
@@ -1166,7 +1472,7 @@ func _observe_stomach() -> void:
 		if not bowl_files.pending.has(entry.token):
 			next_bytes = int(entry.get("bytes",0)); break
 	# Complete the held icon before entering the resting state.
-	if satiety.observe(bowl_files.stomach_bytes,next_bytes,not pickup.active() and bowl_files.pending.is_empty()):
+	if satiety.observe(bowl_files.stomach_bytes,next_bytes,not pickup.active() and bowl_files.pending.is_empty(),bowl_files.all_food_oversized()):
 		_save_settings()
 	settings_window.update_stomach_usage(satiety.used,satiety.capacity,satiety.resting)
 
@@ -1178,17 +1484,21 @@ func _apply_stomach_settings(capacity: int, hours: float, auto_open: bool) -> vo
 	_save_settings()
 
 func _food_available(item) -> bool:
+	if sleep_cycle.active(): return false
 	if not bowl_files.available(item): return false
 	var reserved: int = bowl_files.reserved_bytes()
+	var other_held: bool = pickup.current!=null and pickup.current!=item and not pickup.current.source.is_empty()
 	# During handoff the completed icon has not yet reached the worker queue.
-	if pickup.current!=null and pickup.current!=item and not pickup.current.source.is_empty():
+	if other_held:
 		var old: Dictionary = pickup.current.source
 		if not bowl_files.pending.has(old.token): reserved += int(old.get("bytes",0))
-	return satiety.can_take(int(item.source.get("bytes",0))+reserved)
+	# A sum of several reservations must never masquerade as one oversized file.
+	var allow_oversized: bool = not item.source.is_empty() and not other_held and reserved==0 and bowl_files.pending.is_empty() and bowl_files.all_food_oversized()
+	return satiety.can_take(int(item.source.get("bytes",0))+reserved,allow_oversized)
 
 func _update_appetite(dt: float, blocked: bool) -> void:
 	if not bowl_files.storage_ready: return
-	var occupied: bool = blocked or pickup.active() or behavior.chewing.active() or bowl_jump.active() or bowl_summon.active() \
+	var occupied: bool = sleep_cycle.active() or blocked or pickup.active() or behavior.chewing.active() or bowl_jump.active() or bowl_summon.active() \
 		or roaming.travelling() or behavior.time<behavior.reaction_until
 	if satiety.full_pending and not occupied:
 		satiety.full_pending = false
